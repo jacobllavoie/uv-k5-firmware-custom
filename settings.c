@@ -405,6 +405,15 @@ void SETTINGS_FactoryReset(bool bIsAll)
 	if (bIsAll)
 	{
 		RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_FIRST + BAND6_400MHz, 43350000);
+		
+		// Add these default values for CW settings
+		gEeprom.CW_ID_ON_UNKEY       = false;
+		gEeprom.FOXHUNT_MODE         = false;
+		strcpy(gEeprom.CW_ID, "UV-K5");
+		gEeprom.CW_PIP_COUNT         = 5;
+		gEeprom.CW_PIP_INTERVAL      = 10;   // seconds
+		gEeprom.CW_TONE_HZ           = 800;  // Hz
+		gEeprom.CW_WPM               = 20;
 
 		// set the first few memory channels
 		for (i = 0; i < ARRAY_SIZE(gDefaultFrequencyTable); i++)

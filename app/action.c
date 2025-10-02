@@ -42,6 +42,7 @@
 #include "settings.h"
 #include "ui/inputbox.h"
 #include "ui/ui.h"
+#include "app/cw.h"
 
 #if defined(ENABLE_FMRADIO)
 static void ACTION_Scan_FM(bool bRestart);
@@ -58,6 +59,11 @@ inline static void ACTION_1750() { ACTION_AlarmOr1750(true); };
 #endif
 
 inline static void ACTION_ScanRestart() { ACTION_Scan(true); };
+
+void ACTION_CW_Test(void)
+{
+    CW_Transmit_String("CQ CQ CQ DE TEST");
+}
 
 void (*action_opt_table[])(void) = {
 	[ACTION_OPT_NONE] = &FUNCTION_NOP,

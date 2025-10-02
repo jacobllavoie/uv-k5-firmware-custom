@@ -124,6 +124,16 @@ const t_menu_item MenuList[] =
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
 	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 
+	{"CW Txt", VOICE_ID_INVALID,                       MENU_CW_TEXT_ENTRY },
+	{"CW",     VOICE_ID_INVALID,                       MENU_CW            },
+	{"CWUnkey",VOICE_ID_INVALID,                       MENU_CW_ID_ON_UNKEY},
+	{"Foxhunt",VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
+	{"CW ID",  VOICE_ID_INVALID,                       MENU_CW_ID         },
+	{"CW Pips",VOICE_ID_INVALID,                       MENU_CW_PIP_COUNT  },
+	{"CW Int", VOICE_ID_INVALID,                       MENU_CW_PIP_INTERVAL},
+	{"CW Freq",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
+	{"CW WPM", VOICE_ID_INVALID,                       MENU_CW_WPM        },
+
 	// hidden menu items from here on
 	// enabled if pressing both the PTT and upper side button at power-on
 	{"F Lock", VOICE_ID_INVALID,                       MENU_F_LOCK        },
@@ -137,6 +147,7 @@ const t_menu_item MenuList[] =
 #endif
 	{"BatCal", VOICE_ID_INVALID,                       MENU_BATCAL        }, // battery voltage calibration
 	{"BatTyp", VOICE_ID_INVALID,                       MENU_BATTYP        }, // battery type 1600/2200mAh
+	
 	{"Reset",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
 	{"",       VOICE_ID_INVALID,                       0xff               }  // end of list - DO NOT delete or move this this
@@ -840,6 +851,46 @@ void UI_DisplayMenu(void)
 		case MENU_F2LONG:
 		case MENU_MLONG:
 			strcpy(String, gSubMenu_SIDEFUNCTIONS[gSubMenuSelection].name);
+			break;
+		case MENU_CW:
+			if (!gIsInSubMenu || edit_index < 0) {
+				strcpy(String, gEeprom.CW_ID);
+			} else {
+				strcpy(String, edit);
+				UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
+				if (edit_index < 10)
+					UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);
+			}
+			already_printed = true;
+			break;
+			
+		// Add these new cases to display the CW settings
+		case MENU_CW_ID_ON_UNKEY:
+		case MENU_FOXHUNT_MODE:
+			strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+			break;
+		case MENU_CW_ID:
+			if (!gIsInSubMenu || edit_index < 0) {
+				strcpy(String, gEeprom.CW_ID);
+			} else {
+				strcpy(String, edit);
+				UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
+				if (edit_index < 10)
+					UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);
+			}
+			already_printed = true;
+			break;
+		case MENU_CW_PIP_COUNT:
+			sprintf(String, "%d", gSubMenuSelection);
+			break;
+		case MENU_CW_PIP_INTERVAL:
+			sprintf(String, "%ds", gSubMenuSelection);
+			break;
+		case MENU_CW_TONE_HZ:
+			sprintf(String, "%dHz", gSubMenuSelection);
+			break;
+		case MENU_CW_WPM:
+			sprintf(String, "%d", gSubMenuSelection);
 			break;
 
 	}

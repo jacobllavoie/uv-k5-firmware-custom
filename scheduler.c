@@ -19,6 +19,7 @@
 	#include "app/fm.h"
 #endif
 #include "app/scanner.h"
+#include "app/cw.h"
 #include "audio.h"
 #include "functions.h"
 #include "helper/battery.h"
@@ -59,6 +60,8 @@ void SystickHandler(void)
 		DECREMENT_AND_TRIGGER(gTxTimerCountdown_500ms, gTxTimeoutReached);
 		DECREMENT(gSerialConfigCountDown_500ms);
 	}
+
+    CW_Update();
 
 	if ((gGlobalSysTickCounter & 3) == 0)
 		gNextTimeslice40ms = true;

@@ -71,12 +71,17 @@
 #include "ui/menu.h"
 #include "ui/status.h"
 #include "ui/ui.h"
+#include "app/cw.h"
 
 static bool flagSaveVfo;
 static bool flagSaveSettings;
 static bool flagSaveChannel;
 
 static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+
+// Add these global variables for Foxhunt mode
+static uint32_t gFoxhuntCallsignCountdown_500ms = 0;
+static uint32_t gFoxhuntPipCountdown_500ms = 0;
 
 
 void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) = {
@@ -1260,6 +1265,33 @@ void APP_TimeSlice500ms(void)
 {
 	gNextTimeslice_500ms = false;
 	bool exit_menu = false;
+	
+	if (gEeprom.FOXHUNT_MODE && CW_IsIdle()) { // Only start a new transmission if not already busy
+		// Check if it's time to send the callsign
+		if (gFoxhuntCallsignCountdown_500ms > 0) {
+			gFoxhuntCallsignCountdown_500ms--;
+		} else {
+			// Start transmitting callsign every 10 minutes (1200 * 500ms = 600s)
+			CW_Start(gEeprom.CW_ID);
+			gFoxhuntCallsignCountdown_500ms = 1200; // Reset for 10 minutes
+		}
+
+		// Check if it's time to send the pips (and we are not busy with the callsign)
+		if (CW_IsIdle()) {
+			if (gFoxhuntPipCountdown_500ms > 0) {
+				gFoxhuntPipCountdown_500ms--;
+			} else {
+				// Start transmitting pips
+				char pips[gEeprom.CW_PIP_COUNT + 1];
+				memset(pips, 'T', gEeprom.CW_PIP_COUNT); // Using 'T' for a simple pip
+				pips[gEeprom.CW_PIP_COUNT] = '\0';
+				CW_Start(pips);
+				
+				// CORRECTED: Multiply interval by 2 for 500ms ticks
+				gFoxhuntPipCountdown_500ms = gEeprom.CW_PIP_INTERVAL * 2; 
+			}
+		}
+	}
 
 	// Skipped authentic device check
 

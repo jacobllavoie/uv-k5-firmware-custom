@@ -20,6 +20,8 @@
 	#include "ARMCM0.h"
 #endif
 #include "app/dtmf.h"
+#include "app/cw.h"
+
 #include "app/generic.h"
 #include "app/menu.h"
 #include "app/scanner.h"
@@ -251,6 +253,15 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
 			break;
+
+		#ifdef ENABLE_CW_MENU  // <--- Add this block
+			case MENU_CW_UNKEY:
+			case MENU_B_FOX_HUNT:
+			case MENU_CCW_ID:
+				*pMin = 0;
+				*pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
+				break;
+		#endif  // <--- End of block
 
 		case MENU_AM:
 			*pMin = 0;
@@ -758,6 +769,33 @@ void MENU_AcceptSetting(void)
 			gSetting_ScrambleEnable = gSubMenuSelection;
 			gFlagReconfigureVfos    = true;
 			break;
+
+		#ifdef ENABLE_CW_MENU  // <--- Add this block
+			case MENU_CW_UNKEY:
+				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID & 1);
+				return;
+			case MENU_B_FOX_HUNT:
+				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID >> 1) & 1;
+				return;
+			case MENU_CCW_ID:
+				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID >> 2) & 1;
+				return;
+		#endif  // <--- End of block
+
+		#ifdef ENABLE_CW_MENU  // <--- Add this block
+			case MENU_CW_UNKEY:
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~1;
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1);
+				break;
+			case MENU_B_FOX_HUNT:
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~2;
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1) << 1;
+				break;
+			case MENU_CCW_ID:
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~4;
+				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1) << 2;
+				break;
+		#endif  // <--- End of block
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
@@ -1400,7 +1438,7 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 			)
             return;
 		#if 1
-			if (UI_MENU_GetCurrentMenuId() == MENU_DEL_CH || UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
+			if (UI_MENU_GetCurrentMenuId() == MENU_DEL_CH || UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME || UI_MENU_GetCurrentMenuId() == MENU_CW_ID || UI_MENU_GetCurrentMenuId() == MENU_CW_TEXT_ENTRY)
 				if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
 					return;  // invalid channel
 		#endif
@@ -1421,10 +1459,14 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 	{
 		if (edit_index < 0)
 		{	// enter channel name edit mode
-			if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
-				return;
+			if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {
+				if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
+					return;
 
-			SETTINGS_FetchChannelName(edit, gSubMenuSelection);
+				SETTINGS_FetchChannelName(edit, gSubMenuSelection);
+			} else { // MENU_CW_ID
+				strcpy(edit, gEeprom.CW_ID);
+			}
 
 			// pad the channel name out with '_'
 			edit_index = strlen(edit);
@@ -1570,7 +1612,7 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 	uint8_t Channel;
 	bool    bCheckScanList;
 
-	if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gIsInSubMenu && edit_index >= 0)
+	if ((UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME || UI_MENU_GetCurrentMenuId() == MENU_CW_ID) && gIsInSubMenu && edit_index >= 0)
 	{	// change the character
 		if (bKeyPressed && edit_index < 10 && Direction != 0)
 		{

@@ -251,6 +251,15 @@ typedef struct {
 #ifdef ENABLE_RSSI_BAR
 	uint8_t               S0_LEVEL;
 	uint8_t               S9_LEVEL;
+	
+	// Add these new members for CW settings at the end of the struct
+	bool      CW_ID_ON_UNKEY;
+	bool      FOXHUNT_MODE;
+	char      CW_ID[10];
+	uint8_t   CW_PIP_COUNT;
+	uint8_t   CW_PIP_INTERVAL;
+	uint16_t  CW_TONE_HZ;
+	uint8_t   CW_WPM;
 #endif
 } EEPROM_Config_t;
 

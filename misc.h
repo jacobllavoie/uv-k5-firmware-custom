@@ -161,6 +161,7 @@ extern enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 #endif
 extern bool                  gSetting_live_DTMF_decoder;
 extern uint8_t               gSetting_battery_text;
+extern uint8_t               gSetting_set_pwr;
 
 extern bool                  gMonitor;
 

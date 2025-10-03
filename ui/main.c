@@ -618,9 +618,19 @@ void UI_DisplayMain(void)
 			{	// TX power level
 				switch (gRxVfo->OUTPUT_POWER)
 				{
-					case OUTPUT_POWER_LOW:  Level = 2; break;
-					case OUTPUT_POWER_MID:  Level = 4; break;
-					case OUTPUT_POWER_HIGH: Level = 6; break;
+					case OUTPUT_POWER_LOW1:
+					case OUTPUT_POWER_LOW2:
+					case OUTPUT_POWER_LOW3:
+					case OUTPUT_POWER_LOW4:
+					case OUTPUT_POWER_LOW5:
+						Level = 2;
+						break;
+					case OUTPUT_POWER_MID:
+						Level = 4;
+						break;
+					case OUTPUT_POWER_HIGH:
+						Level = 6;
+						break;
 				}
 			}
 			else
@@ -661,9 +671,21 @@ void UI_DisplayMain(void)
 
 		if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
 		{	// show the TX power
-			const char pwr_list[][2] = {"L","M","H"};
-			int i = vfoInfo->OUTPUT_POWER % 3;
-			UI_PrintStringSmallNormal(pwr_list[i], LCD_WIDTH + 46, 0, line + 1);
+			static const char* const pwr_watt_list[7] = { "<20mW", "125mW", "250mW", "500mW", "1W", "2W", "5W" };
+			const char* pwr_str = "";
+			uint8_t pwr_idx = 0;
+
+			if (vfoInfo->OUTPUT_POWER == OUTPUT_POWER_USER) {
+				pwr_idx = gEeprom.gSetting_set_pwr;
+			} else {
+				pwr_idx = vfoInfo->OUTPUT_POWER - 1;
+			}
+
+			if (pwr_idx < 7) {
+				pwr_str = pwr_watt_list[pwr_idx];
+			}
+
+			UI_PrintStringSmallNormal(pwr_str, LCD_WIDTH + 22, 0, line + 1);
 		}
 
 		if (vfoInfo->freq_config_RX.Frequency != vfoInfo->freq_config_TX.Frequency)

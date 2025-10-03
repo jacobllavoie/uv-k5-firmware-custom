@@ -1,3 +1,4 @@
+#include "app/app.h"
 #include "app/cw.h"
 #include "driver/bk4819.h"
 #include "driver/system.h"
@@ -31,7 +32,7 @@ static uint16_t     gCW_Countdown_10ms;
 
 bool CW_IsIdle(void)
 {
-	return (gCW_State == CW_IDLE);
+	return gCW_State == CW_IDLE;
 }
 
 void CW_Start(const char* str)
@@ -42,13 +43,13 @@ void CW_Start(const char* str)
 
     gCW_String = str;
     gCW_Code = NULL;
-    RADIO_PrepareTX(); // Key up the radio
     gCW_State = CW_KEY_UP; // Start with a gap
     gCW_Countdown_10ms = 1; // Start almost immediately
 }
 
 void CW_Transmit_String(const char* str)
 {
+    RADIO_PrepareTX();
     CW_Start(str);
     while(!CW_IsIdle()) {
         SYSTEM_DelayMs(10);
@@ -84,7 +85,7 @@ void CW_Update(void)
         case CW_KEY_UP:
             if (*gCW_String == '\0') { // End of string
                 gCW_State = CW_IDLE;
-                RADIO_SendEndOfTransmission();
+                APP_EndTransmission();
                 return;
             }
 

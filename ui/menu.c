@@ -42,6 +42,7 @@ const t_menu_item MenuList[] =
 //   text,     voice ID,                               menu ID
 	{"Step",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP          },
 	{"TxPwr",  VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
+	{"SetPwr", VOICE_ID_INVALID,                       MENU_SET_PWR       },
 	{"RxDCS",  VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
 	{"RxCTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
 	{"TxDCS",  VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
@@ -155,11 +156,26 @@ const t_menu_item MenuList[] =
 
 const uint8_t FIRST_HIDDEN_MENU_ITEM = MENU_F_LOCK;
 
-const char gSubMenu_TXP[][5] =
+const char gSubMenu_TXP[][6] =
 {
-	"LOW",
-	"MID",
-	"HIGH"
+    "USER",
+    "LOW 1",
+    "LOW 2",
+    "LOW 3",
+    "LOW 4",
+    "LOW 5",
+    "MID",
+    "HIGH"
+};
+
+const char gSubMenu_SET_PWR[][6] = {
+    "< 20m",
+    "125m",
+    "250m",
+    "500m",
+    "1",
+    "2",
+    "5"
 };
 
 const char gSubMenu_SFT_D[][4] =
@@ -531,6 +547,10 @@ void UI_DisplayMenu(void)
 			strcpy(String, gSubMenu_TXP[gSubMenuSelection]);
 			break;
 
+		case MENU_SET_PWR:
+			strcpy(String, gSubMenu_SET_PWR[gSubMenuSelection]);
+			break;
+
 		case MENU_R_DCS:
 		case MENU_T_DCS:
 			if (gSubMenuSelection == 0)
@@ -879,7 +899,8 @@ void UI_DisplayMenu(void)
             if (!gIsInSubMenu || edit_index < 0)
             {
                 // We are NOT in edit mode, so just display the saved CW ID.
-                SETTINGS_FetchChannelName(String, gSubMenuSelection);
+                memcpy(String, gEeprom.CW_ID, 8);
+				String[8] = 0;
                 char *pPrintStr = String[0] ? String : "--"; // If the ID is empty, show "--"
                 UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 2, 8);
             }
@@ -901,7 +922,7 @@ void UI_DisplayMenu(void)
 
             already_printed = true;
             break;
-		}
+        }
         #endif
 	}
 

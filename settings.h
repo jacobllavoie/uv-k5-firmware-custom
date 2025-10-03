@@ -72,7 +72,12 @@ enum {
 };
 
 enum {
-	OUTPUT_POWER_LOW = 0,
+	OUTPUT_POWER_USER = 0,
+	OUTPUT_POWER_LOW1,
+	OUTPUT_POWER_LOW2,
+	OUTPUT_POWER_LOW3,
+	OUTPUT_POWER_LOW4,
+	OUTPUT_POWER_LOW5,
 	OUTPUT_POWER_MID,
 	OUTPUT_POWER_HIGH
 };
@@ -188,6 +193,7 @@ typedef struct {
 	ALARM_Mode_t      ALARM_MODE;
 #endif
 	POWER_OnDisplayMode_t POWER_ON_DISPLAY_MODE;
+	uint8_t               gSetting_set_pwr;
 	ROGER_Mode_t          ROGER;
 	uint8_t               REPEATER_TAIL_TONE_ELIMINATION;
 	uint8_t               KEY_1_SHORT_PRESS_ACTION;
@@ -259,7 +265,7 @@ typedef struct {
 	bool                  CW_ID_EOT;             // Renamed from CW_ID_ON_UNKEY
 	bool                  FOXHUNT_MODE;          // Foxhunt Mode toggle
 	bool                  CW_CCW_ID;             // Corresponds to MENU_CCW_ID
-	char                  CW_ID[10];             // CW ID/Callsign (Text Editor)
+	char                  CW_ID[8];             // CW ID/Callsign (Text Editor)
 	uint8_t               FOXHUNT_PIP_COUNT;     // Renamed from CW_PIP_COUNT
 	uint8_t               FOXHUNT_PIP_INTERVAL;  // Renamed from CW_PIP_INTERVAL
 	uint16_t              CW_TONE_HZ;            // CW Tone Frequency

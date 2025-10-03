@@ -166,6 +166,6 @@ void     RADIO_SetVfoState(VfoState_t State);
 void     RADIO_PrepareTX(void);
 void     RADIO_SendCssTail(void);
 void     RADIO_PrepareCssTX(void);
-void     RADIO_SendEndOfTransmission(void);
+bool     RADIO_SendEndOfTransmission(void);
 
 #endif

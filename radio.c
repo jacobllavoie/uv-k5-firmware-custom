@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "am_fix.h"
+#include "app/cw.h"
 #include "app/dtmf.h"
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
@@ -107,7 +108,7 @@ void RADIO_InitInfo(VFO_Info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 	pInfo->StepFrequency            = gStepFrequencyTable[pInfo->STEP_SETTING];
 	pInfo->CHANNEL_SAVE             = ChannelSave;
 	pInfo->FrequencyReverse         = false;
-	pInfo->OUTPUT_POWER             = OUTPUT_POWER_LOW;
+	pInfo->OUTPUT_POWER             = OUTPUT_POWER_LOW1;
 	pInfo->freq_config_RX.Frequency = Frequency;
 	pInfo->freq_config_TX.Frequency = Frequency;
 	pInfo->pRX                      = &pInfo->freq_config_RX;
@@ -287,7 +288,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		{
 			pVfo->FrequencyReverse  = false;
 			pVfo->CHANNEL_BANDWIDTH = BK4819_FILTER_BW_WIDE;
-			pVfo->OUTPUT_POWER      = OUTPUT_POWER_LOW;
+			pVfo->OUTPUT_POWER      = OUTPUT_POWER_LOW1;
 			pVfo->BUSY_CHANNEL_LOCK = false;
 		}
 		else
@@ -1019,15 +1020,33 @@ void RADIO_SendCssTail(void)
 	SYSTEM_DelayMs(200);
 }
 
-void RADIO_SendEndOfTransmission(void)
+bool RADIO_SendEndOfTransmission(void)
 {
+	static bool is_sending_eot_id = false;
+
+	if (gEeprom.CW_ID_EOT && !is_sending_eot_id) {
+		is_sending_eot_id = true;
+		CW_Start(gEeprom.CW_ID);
+		if (gCW_State == CW_IDLE) { // CW_Start did nothing
+			is_sending_eot_id = false;
+		} else {
+			return true; // CW started, it will call us back.
+		}
+	}
+
+	if (is_sending_eot_id) { // Coming back from CW_Update
+		is_sending_eot_id = false;
+	}
+
 	BK4819_PlayRoger();
 	DTMF_SendEndOfTransmission();
 
 	// send the CTCSS/DCS tail tone - allows the receivers to mute the usual FM squelch tail/crash
 	if(gEeprom.TAIL_TONE_ELIMINATION)
 		RADIO_SendCssTail();
-	RADIO_SetupRegisters(false);
+	RADIO_SetupRegisters(true);
+
+	return false;
 }
 
 void RADIO_PrepareCssTX(void)

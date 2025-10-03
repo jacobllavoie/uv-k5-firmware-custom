@@ -1269,34 +1269,38 @@ void APP_TimeSlice500ms(void)
 	bool exit_menu = false;
 	
 #ifdef ENABLE_CW_MENU // <--- This block needs to be updated
-    if (gEeprom.FOXHUNT_MODE) { // Only run this logic if Foxhunt Mode is active
+    if (gEeprom.FOXHUNT_MODE && CW_IsIdle() && !gPttIsPressed) { // Only do anything if the CW machine is idle and PTT is not pressed
 
-        // Check if it's time to send the mandatory CW ID (10 minutes = 1200 * 500ms)
-        if (gFoxhuntCallsignCountdown_500ms > 0) {
-            gFoxhuntCallsignCountdown_500ms--;
-        } else {
-            // Start transmitting CW ID and reset the timer
-            CW_Start(gEeprom.CW_ID); // Assuming CW_Start handles the CW transmission of a string
-            gFoxhuntCallsignCountdown_500ms = 1200; // Reset for 10 minutes
-        }
+		// Decrement timers
+		if (gFoxhuntCallsignCountdown_500ms > 0) {
+			gFoxhuntCallsignCountdown_500ms--;
+		}
+		if (gFoxhuntPipCountdown_500ms > 0) {
+			gFoxhuntPipCountdown_500ms--;
+		}
 
-        // Check if it's time to send the pips/beacon (and we are not busy with the CW ID)
-        if (CW_IsIdle()) { // Assuming CW_IsIdle() is defined to check if CW transmission is finished
-
-            if (gFoxhuntPipCountdown_500ms > 0) {
-                gFoxhuntPipCountdown_500ms--;
-            } else {
-                // Prepare and send pips
-                char pips[gEeprom.FOXHUNT_PIP_COUNT + 1];
-                memset(pips, 'T', gEeprom.FOXHUNT_PIP_COUNT); // Using 'T' for a simple pip
-                pips[gEeprom.FOXHUNT_PIP_COUNT] = '\0';
-                CW_Start(pips);
-                
-                // Use the configured interval (multiplied by 2 since this runs every 500ms)
-                gFoxhuntPipCountdown_500ms = gEeprom.FOXHUNT_PIP_INTERVAL * 2; 
-            }
-        }
-    }
+		// Check if it's time to transmit
+		if (gFoxhuntCallsignCountdown_500ms == 0) {
+			if (gEeprom.CW_ID[0] != '\0') { // Only transmit if ID is not empty
+				RADIO_PrepareTX();
+				RADIO_SetTxParameters();
+				CW_Start(gEeprom.CW_ID);
+			}
+			gFoxhuntCallsignCountdown_500ms = 1200; // Reset for 10 minutes
+			// also reset pip timer to avoid immediate pips after ID
+			gFoxhuntPipCountdown_500ms = gEeprom.FOXHUNT_PIP_INTERVAL * 2; 
+		} else if (gFoxhuntPipCountdown_500ms == 0) {
+			if (gEeprom.FOXHUNT_PIP_COUNT > 0) {
+				char pips[gEeprom.FOXHUNT_PIP_COUNT + 1];
+				memset(pips, 'T', gEeprom.FOXHUNT_PIP_COUNT);
+				pips[gEeprom.FOXHUNT_PIP_COUNT] = '\0';
+				RADIO_PrepareTX();
+				RADIO_SetTxParameters();
+				CW_Start(pips);
+			}
+			gFoxhuntPipCountdown_500ms = gEeprom.FOXHUNT_PIP_INTERVAL * 2; 
+		}
+	}
 #endif // <--- END ADDED WRAPPER
 
 	// Skipped authentic device check

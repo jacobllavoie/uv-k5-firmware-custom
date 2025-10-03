@@ -157,6 +157,11 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(gSubMenu_TXP) - 1;
 			break;
 
+		case MENU_SET_PWR:
+			*pMin = 0;
+			*pMax = ARRAY_SIZE(gSubMenu_SET_PWR) - 1;
+			break;
+
 		case MENU_SFT_D:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(gSubMenu_SFT_D) - 1;
@@ -432,6 +437,10 @@ void MENU_AcceptSetting(void)
 			gTxVfo->OUTPUT_POWER = gSubMenuSelection;
 			gRequestSaveChannel = 1;
 			return;
+
+		case MENU_SET_PWR:
+			gEeprom.gSetting_set_pwr = gSubMenuSelection;
+			break;
 
 		case MENU_T_DCS:
 			pConfig = &gTxVfo->freq_config_TX;
@@ -785,36 +794,36 @@ void MENU_AcceptSetting(void)
 			gFlagReconfigureVfos    = true;
 			break;
 
-		#ifdef ENABLE_CW_MENU // <--- MODIFIED
-            case MENU_CW_ID_EOT:
-                gEeprom.CW_ID_EOT = gSubMenuSelection;
-                break;
-            case MENU_FOXHUNT_MODE:
-                gEeprom.FOXHUNT_MODE = gSubMenuSelection;
-                break;
-            case MENU_FOXHUNT_PIP_COUNT:
-                gEeprom.FOXHUNT_PIP_COUNT = gSubMenuSelection;
-                break;
-            case MENU_FOXHUNT_PIP_INTERVAL:
-                gEeprom.FOXHUNT_PIP_INTERVAL = gSubMenuSelection;
-                break;
-            case MENU_CW_WPM:
-                gEeprom.CW_WPM = gSubMenuSelection;
-                break;
-            case MENU_CW_TONE_HZ:
-                gEeprom.CW_TONE_HZ = gSubMenuSelection;
-                break;
-            case MENU_CW_ID: {
-                for (int i = 9; i >= 0; i--) {
-                    if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0x00 && edit[i] != 0xff)
-                        break;
-                    edit[i] = ' ';
-                }
-                // The new CW_ID field must be a character array of size 10 in settings.h
-                memcpy(gEeprom.CW_ID, edit, 10);
-                break;
-            }
-		#endif // <--- END MODIFIED
+		#ifdef ENABLE_CW_MENU
+			case MENU_CW_ID_EOT:
+				gEeprom.CW_ID_EOT = gSubMenuSelection;
+				break;
+			case MENU_FOXHUNT_MODE:
+				gEeprom.FOXHUNT_MODE = gSubMenuSelection;
+				break;
+			case MENU_FOXHUNT_PIP_COUNT:
+				gEeprom.FOXHUNT_PIP_COUNT = gSubMenuSelection;
+				break;
+			case MENU_FOXHUNT_PIP_INTERVAL:
+				gEeprom.FOXHUNT_PIP_INTERVAL = gSubMenuSelection;
+				break;
+			case MENU_CW_WPM:
+				gEeprom.CW_WPM = gSubMenuSelection;
+				break;
+			case MENU_CW_TONE_HZ:
+				gEeprom.CW_TONE_HZ = gSubMenuSelection;
+				break;
+			case MENU_CW_ID: {
+				for (int i = 9; i >= 0; i--) {
+					if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0x00 && edit[i] != 0xff)
+						break;
+					edit[i] = ' ';
+				}
+				// The new CW_ID field must be a character array of size 8 in settings.h
+				memcpy(gEeprom.CW_ID, edit, sizeof(gEeprom.CW_ID));
+				break;
+			}
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
@@ -888,6 +897,10 @@ void MENU_ShowCurrentSetting(void)
 
         case MENU_TXP:
             gSubMenuSelection = gTxVfo->OUTPUT_POWER;
+            break;
+
+        case MENU_SET_PWR:
+            gSubMenuSelection = gEeprom.gSetting_set_pwr;
             break;
 
         case MENU_RESET:
@@ -1198,8 +1211,8 @@ void MENU_ShowCurrentSetting(void)
                 gSubMenuSelection = gEeprom.CW_TONE_HZ;
                 break;
             case MENU_CW_ID: // For text editing, initialize 'edit' buffer
-                memcpy(edit, gEeprom.CW_ID, 10);
-                edit[10] = '\0';
+                memcpy(edit, gEeprom.CW_ID, sizeof(gEeprom.CW_ID));
+                edit[sizeof(gEeprom.CW_ID)] = '\0';
                 break;
         #endif // <--- Correct closing of the CW block
         
@@ -1296,6 +1309,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				{	// exit edit
 					gFlagAcceptSetting  = true; // Auto-accept when full
 					gAskForConfirmation = 0;
+					edit_index = -1;
 				}
 
 				gRequestDisplayScreen = DISPLAY_MENU;
@@ -1489,146 +1503,175 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 
 static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 {
-	if (bKeyHeld || !bKeyPressed)
-		return;
+    if (bKeyHeld || !bKeyPressed)
+        return;
 
-	gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
-	gRequestDisplayScreen = DISPLAY_MENU;
+    gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
+    gRequestDisplayScreen = DISPLAY_MENU;
 
-	if (!gIsInSubMenu)
-	{
-		#ifdef ENABLE_VOICE
-			if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
-				gAnotherVoiceID = MenuList[gMenuCursor].voice_id;
-		#endif
-        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE 
-			|| UI_MENU_GetCurrentMenuId() == MENU_DWCODE 
-#ifdef ENABLE_DTMF_CALLING 
-			|| UI_MENU_GetCurrentMenuId() == MENU_ANI_ID
-#endif
-            // --- ADDED for CW ID as Text Editor ---
-			|| UI_MENU_GetCurrentMenuId() == MENU_CW_ID)
-            // --- END ADDED ---
-            return;
-		#if 1
-			if (UI_MENU_GetCurrentMenuId() == MENU_DEL_CH || UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
-				if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
-					return;  // invalid channel
-		#endif
+    if (!gIsInSubMenu)
+    {
+        // 1. ENTER SUB-MENU MODE
+        #ifdef ENABLE_VOICE
+            if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
+                gAnotherVoiceID = MenuList[gMenuCursor].voice_id;
+        #endif
 
-		gAskForConfirmation = 0;
-		gIsInSubMenu        = true;
+        if (UI_MENU_GetCurrentMenuId() == MENU_DEL_CH || UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
+        {
+            if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
+                return;  // invalid channel checks are needed here before proceeding
+        }
+        
+        // Skip entry if in a menu that is not supposed to be entered with MENU key
+        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE || 
+            UI_MENU_GetCurrentMenuId() == MENU_DWCODE || 
+        #ifdef ENABLE_DTMF_CALLING
+            UI_MENU_GetCurrentMenuId() == MENU_ANI_ID ||
+        #endif
+            (UI_MENU_GetCurrentMenuId() == MENU_CW_ID && edit_index >= 0) ) 
+        {
+            // If we are outside the final 'edit_index < 0' logic and hit MENU, 
+            // we should proceed to the 'editing the characters' logic or exit.
+        }
 
-//		if (UI_MENU_GetCurrentMenuId() != MENU_D_LIST)
-		{
-			gInputBoxIndex      = 0;
-			edit_index          = -1;
-		}
+        gAskForConfirmation = 0;
+        gIsInSubMenu        = true;
+        gInputBoxIndex      = 0;
+        edit_index          = -1; // Ready to enter text edit mode if applicable
 
-		return;
-	}
+        // Enter text edit mode immediately if appropriate
+        if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME || UI_MENU_GetCurrentMenuId() == MENU_CW_ID)
+        {
+            if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {
+                SETTINGS_FetchChannelName(edit, gSubMenuSelection);
+            } else { // MENU_CW_ID
+                memcpy(edit, gEeprom.CW_ID, sizeof(gEeprom.CW_ID));
+            }
 
-	if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME || UI_MENU_GetCurrentMenuId() == MENU_CW_ID) // <--- MODIFIED to include MENU_CW_ID
-	{
-		if (edit_index < 0)
-		{	// enter channel/CW name edit mode
-			// NOTE: CW_ID text mode does not depend on a valid channel
-			if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) {
-				if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
-					return;
-				SETTINGS_FetchChannelName(edit, gSubMenuSelection);
-			} else { // MENU_CW_ID
-				memcpy(edit, gEeprom.CW_ID, 10);
-			}
+            // pad the name with spaces or underscores
+            edit_index = strlen(edit);
+            char pad_char = (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) ? '_' : ' ';
+            while (edit_index < 10)
+                edit[edit_index++] = pad_char;
+            edit[edit_index] = 0;
+            edit_index = 0; // Set cursor to first position
 
-			// pad the channel name out with '_' or ' ' for CW ID
-			edit_index = strlen(edit);
-			char pad_char = (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) ? '_' : ' ';
-			while (edit_index < 10)
-				edit[edit_index++] = pad_char;
-			edit[edit_index] = 0;
-			edit_index = 0;  // 'edit_index' is going to be used as the cursor position
+            memcpy(edit_original, edit, sizeof(edit_original));
+        }
 
-			// make a copy so we can test for change when exiting the menu item
-			memcpy(edit_original, edit, sizeof(edit_original));
+        return;
+    }
 
-			return;
-		}
-		else
-		if (edit_index >= 0 && edit_index < 10)
-		{	// editing the channel/CW name characters
+    // 2. INSIDE SUB-MENU MODE (CURSOR MOVEMENT/EXIT)
 
-			if (++edit_index < 10)
-				return;	// next char
+    if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME || UI_MENU_GetCurrentMenuId() == MENU_CW_ID)
+    {
+        if (edit_index >= 0 && edit_index < 10)
+        {   // Currently editing a character (cursor is active)
+            char pad_char = (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME) ? '_' : ' ';
+            
+            // Logic to exit edit mode early: hit MENU on a padding character
+            if (edit[edit_index] == pad_char)
+            {
+                edit_index = -1; // Mark for exit
+            }
+            else
+            {
+                // Advance cursor to the next character/position
+                if (++edit_index < 10)
+                    return; // Next char, stay in edit mode
+                else
+                    edit_index = -1; // Full buffer, mark for exit
+            }
+        }
+        
+        // This block handles the exit of text edit mode when edit_index is -1
+        if (edit_index < 0)
+        {
+            // Finalize decision on save/confirmation
+            bool value_changed = (memcmp(edit_original, edit, sizeof(edit_original)) != 0);
 
-			// exit
-			gFlagAcceptSetting  = true; // Changed to true for simplicity in non-reset menus
-			gAskForConfirmation = 0;
-            // NOTE: No check for change needed here since we are setting gFlagAcceptSetting = true
-            //       The save routine (MENU_AcceptSetting) will handle the saving.
-		}
-	}
+            if (UI_MENU_GetCurrentMenuId() == MENU_CW_ID)
+            {
+                // For CW_ID, auto-save if anything was edited or if MENU was pressed to finalize (as per your preference)
+                gFlagAcceptSetting  = true;
+                gAskForConfirmation = 0;
+            }
+            else if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && value_changed)
+            {
+                // For MENU_MEM_NAME, proceed to confirmation flow if changed
+                gFlagAcceptSetting  = false;
+                gAskForConfirmation = 1;
+            }
+            else
+            {
+                // For MENU_MEM_NAME, no change, just exit the sub-menu without saving
+                gFlagAcceptSetting = false;
+                gRequestDisplayScreen = DISPLAY_MENU;
+                return;
+            }
+        }
+    }
 
-	// exiting the sub menu
+    // 3. UNIVERSAL SUB-MENU EXIT LOGIC (handles confirmation and non-text settings)
+    if (gIsInSubMenu)
+    {
+        // Define menus that require confirmation on the second MENU press
+        if (UI_MENU_GetCurrentMenuId() == MENU_RESET  ||
+            UI_MENU_GetCurrentMenuId() == MENU_MEM_CH ||
+            UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
+            (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gAskForConfirmation == 1))
+        {
+            switch (gAskForConfirmation)
+            {
+                case 0:
+                    gAskForConfirmation = 1;
+                    break;
 
-	if (gIsInSubMenu)
-	{
-		if (UI_MENU_GetCurrentMenuId() == MENU_RESET  ||
-			UI_MENU_GetCurrentMenuId() == MENU_MEM_CH ||
-			UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
-            // --- MODIFIED for CW_ID to be self-saving ---
-			(UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && memcmp(edit_original, edit, sizeof(edit_original)) != 0) ) 
-            // --- END MODIFIED ---
-		{
-			switch (gAskForConfirmation)
-			{
-				case 0:
-					gAskForConfirmation = 1;
-					break;
+                case 1:
+                    gAskForConfirmation = 2;
+                    UI_DisplayMenu();
 
-				case 1:
-					gAskForConfirmation = 2;
+                    if (UI_MENU_GetCurrentMenuId() == MENU_RESET)
+                    {
+                        #ifdef ENABLE_VOICE
+                            AUDIO_SetVoiceID(0, VOICE_ID_CONFIRM);
+                            AUDIO_PlaySingleVoice(true);
+                        #endif
+                        MENU_AcceptSetting();
+                        // Reset/Reboot logic
+                        #if defined(ENABLE_OVERLAY)
+                            overlay_FLASH_RebootToBootloader();
+                        #else
+                            NVIC_SystemReset();
+                        #endif
+                    }
 
-					UI_DisplayMenu();
+                    gFlagAcceptSetting  = true;
+                    gIsInSubMenu        = false;
+                    gAskForConfirmation = 0;
+                    break; // Exit switch
+            }
+        }
+        else
+        {
+            // For all other menus, perform immediate save/accept on MENU press
+            gFlagAcceptSetting = true;
+            gIsInSubMenu       = false;
+        }
+    }
 
-					if (UI_MENU_GetCurrentMenuId() == MENU_RESET)
-					{
-						#ifdef ENABLE_VOICE
-							AUDIO_SetVoiceID(0, VOICE_ID_CONFIRM);
-							AUDIO_PlaySingleVoice(true);
-						#endif
+    SCANNER_Stop();
 
-						MENU_AcceptSetting();
+    #ifdef ENABLE_VOICE
+        if (UI_MENU_GetCurrentMenuId() == MENU_SCR)
+            gAnotherVoiceID = (gSubMenuSelection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
+        else
+            gAnotherVoiceID = VOICE_ID_CONFIRM;
+    #endif
 
-						#if defined(ENABLE_OVERLAY)
-							overlay_FLASH_RebootToBootloader();
-						#else
-							NVIC_SystemReset();
-						#endif
-					}
-
-					gFlagAcceptSetting  = true;
-					gIsInSubMenu        = false;
-					gAskForConfirmation = 0;
-			}
-		}
-		else
-		{
-			gFlagAcceptSetting = true;
-			gIsInSubMenu       = false;
-		}
-	}
-
-	SCANNER_Stop();
-
-	#ifdef ENABLE_VOICE
-		if (UI_MENU_GetCurrentMenuId() == MENU_SCR)
-			gAnotherVoiceID = (gSubMenuSelection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
-		else
-			gAnotherVoiceID = VOICE_ID_CONFIRM;
-	#endif
-
-	gInputBoxIndex = 0;
+    gInputBoxIndex = 0;
 }
 
 static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
@@ -1649,6 +1692,7 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 			{	// exit edit
 				gFlagAcceptSetting  = false;
 				gAskForConfirmation = 1;
+				edit_index = -1;
 			}
 
 			gRequestDisplayScreen = DISPLAY_MENU;
@@ -1661,12 +1705,13 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 	{	// currently editing the CW ID
 		if (edit_index < 10)
 		{
-			edit[edit_index] = ' '; // Use space instead of '-'
+			edit[edit_index] = ' '; // Use space
 
 			if (++edit_index >= 10)
 			{	// exit edit
 				gFlagAcceptSetting  = true; // Auto-accept when full
 				gAskForConfirmation = 0;
+				edit_index = -1; // Correctly mark exit from edit mode
 			}
 
 			gRequestDisplayScreen = DISPLAY_MENU;

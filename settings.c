@@ -304,7 +304,7 @@ void SETTINGS_InitEEPROM(void)
 	
 	// CW ID string (10 bytes - EEPROM 0x0FB8)
 	EEPROM_ReadBuffer(0x0FB8, gEeprom.CW_ID, sizeof(gEeprom.CW_ID));
-	if (!DTMF_ValidateCodes(gEeprom.CW_ID, sizeof(gEeprom.CW_ID))) {
+	if (gEeprom.CW_ID[0] < 32 || gEeprom.CW_ID[0] > 126) {
 		// Use a safe, simple default if EEPROM data is invalid or erased
 		strcpy(gEeprom.CW_ID, "CQ"); 
 	}
@@ -628,8 +628,7 @@ void SETTINGS_SaveSettings(void)
 		EEPROM_WriteBuffer(0x0FB0, CW_settings._8);
 
 		// Save CW ID string (10 bytes starting at 0x0FB8)
-		EEPROM_WriteBuffer(0x0FB8, gEeprom.CW_ID);
-		EEPROM_WriteBuffer(0x0FB8 + 8, gEeprom.CW_ID + 8);
+		EEPROM_WriteBuffer(0x0FB8, gEeprom.CW_ID, sizeof(gEeprom.CW_ID));
 	}
 	#endif // <--- END ADDED
 

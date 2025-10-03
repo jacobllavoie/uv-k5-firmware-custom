@@ -254,14 +254,14 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
 			break;
 
-		#ifdef ENABLE_CW_MENU  // <--- Add this block
+		#ifdef ENABLE_CW_MENU // <--- ADDED
 			case MENU_CW_UNKEY:
 			case MENU_B_FOX_HUNT:
 			case MENU_CCW_ID:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
+				*pMax = 1; // 0=OFF, 1=ON
 				break;
-		#endif  // <--- End of block
+		#endif // <--- END ADDED
 
 		case MENU_AM:
 			*pMin = 0;
@@ -770,32 +770,18 @@ void MENU_AcceptSetting(void)
 			gFlagReconfigureVfos    = true;
 			break;
 
-		#ifdef ENABLE_CW_MENU  // <--- Add this block
+		#ifdef ENABLE_CW_MENU
 			case MENU_CW_UNKEY:
-				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID & 1);
-				return;
-			case MENU_B_FOX_HUNT:
-				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID >> 1) & 1;
-				return;
-			case MENU_CCW_ID:
-				gSubMenuSelection = (gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID >> 2) & 1;
-				return;
-		#endif  // <--- End of block
-
-		#ifdef ENABLE_CW_MENU  // <--- Add this block
-			case MENU_CW_UNKEY:
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~1;
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1);
+				gEeprom.CW_ID_ON_UNKEY = gSubMenuSelection;
 				break;
 			case MENU_B_FOX_HUNT:
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~2;
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1) << 1;
+				gEeprom.FOXHUNT_MODE = gSubMenuSelection;
 				break;
 			case MENU_CCW_ID:
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID &= ~4;
-				gEeprom.CW_UNKEY_B_FOX_HUNT_CCW_ID |= (gSubMenuSelection & 1) << 2;
+				// Assuming this toggles automatic CW ID transmission
+				gEeprom.CW_AUTO_ID_TX = gSubMenuSelection;
 				break;
-		#endif  // <--- End of block
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
@@ -1158,6 +1144,18 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_SCREN:
 			gSubMenuSelection = gSetting_ScrambleEnable;
 			break;
+
+		#ifdef ENABLE_CW_MENU
+			case MENU_CW_UNKEY:
+				gSubMenuSelection = gEeprom.CW_ID_ON_UNKEY;
+				break;
+			case MENU_B_FOX_HUNT:
+				gSubMenuSelection = gEeprom.FOXHUNT_MODE;
+				break;
+			case MENU_CCW_ID:
+				gSubMenuSelection = gEeprom.CW_AUTO_ID_TX; // Assumes the new variable exists
+				break;
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:

@@ -104,6 +104,11 @@ enum
 #ifdef ENABLE_AM_FIX
 	MENU_AM_FIX,
 #endif
+#ifdef ENABLE_CW_MENU
+	MENU_CW_UNKEY,  // New CW Unkey/B.Fox Hunt setting ID
+	MENU_B_FOX_HUNT,  // New B.Fox Hunt setting ID
+	MENU_CCW_ID,  // New C.CW ID setting ID
+#endif
 #ifdef ENABLE_NOAA
 	MENU_NOAA_S,
 #endif

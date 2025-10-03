@@ -70,9 +70,9 @@ const t_menu_item MenuList[] =
     {"CW ID",  VOICE_ID_INVALID,                       MENU_CW_ID         },
 	{"ID EOT", VOICE_ID_INVALID,                       MENU_CW_ID_EOT     },
 	{"F HUNT", VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
-	{"PIP Cnt",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_COUNT},
-	{"PIP Int",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_INTERVAL},
-	{"CW TONE",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
+	{"PIPCnt",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_COUNT},
+	{"PIPInt",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_INTERVAL},
+	{"CW Hz",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
 	{"CW WPM", VOICE_ID_INVALID,                       MENU_CW_WPM        },
 #endif
 
@@ -871,21 +871,39 @@ void UI_DisplayMenu(void)
             case MENU_CW_TONE_HZ:
                 sprintf(String, "%u Hz", gSubMenuSelection);
                 break;
-            case MENU_CW_ID: // Text editor display logic
-                if (!gIsInSubMenu || edit_index < 0) {
-                    // Display the saved CW ID when not actively editing
-                    sprintf(String, "%.10s", gEeprom.CW_ID);
-                    UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
-                } else {
-                    // Display the text currently being edited
-                    UI_PrintString(edit, menu_item_x1, 0, 2, 8);
-                    if (edit_index < 10)
-                        UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8); // Show cursor
+        case MENU_CW_ID:
+        {
+            // This block handles displaying the CW ID.
+            // It switches between showing the saved value and showing the editor.
+
+            if (!gIsInSubMenu || edit_index < 0)
+            {
+                // We are NOT in edit mode, so just display the saved CW ID.
+                SETTINGS_FetchChannelName(String, gSubMenuSelection);
+                char *pPrintStr = String[0] ? String : "--"; // If the ID is empty, show "--"
+                UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 2, 8);
+            }
+            else
+            {
+                // We ARE in edit mode.
+                // This logic is copied directly from the working MENU_MEM_NAME case.
+
+                // 1. Show the text currently being edited from the 'edit' buffer.
+                //    The '0' for the third argument is important here.
+                UI_PrintString(edit, menu_item_x1, 0, 2, 8);
+
+                if (edit_index < 10)
+                {
+                    // 2. Show the cursor underneath the character being edited.
+                    UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);
                 }
-                already_printed = true;
-                break;
+            }
+
+            already_printed = true;
+            break;
+		}
         #endif
-			}
+	}
 
 	if (!already_printed)
 	{	// we now do multi-line text in a single string

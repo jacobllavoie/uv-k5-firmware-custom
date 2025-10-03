@@ -100,6 +100,15 @@ void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Lin
 
 void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_t Line, uint8_t char_width, const uint8_t *font)
 {
+	// --- FIX STARTS HERE ---
+	// Clear the background area before drawing anything
+	for (size_t i = Start; i < End; i++) {
+		if (i < 128) {
+			gFrameBuffer[Line][i] = 0;
+		}
+	}
+	// --- FIX ENDS HERE ---
+
 	const size_t Length = strlen(pString);
 	const unsigned int char_spacing = char_width + 1;
 

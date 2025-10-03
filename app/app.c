@@ -1268,30 +1268,32 @@ void APP_TimeSlice500ms(void)
 	gNextTimeslice_500ms = false;
 	bool exit_menu = false;
 	
-#ifdef ENABLE_CW_MENU // <--- ADDED WRAPPER
-    if (gEeprom.FOXHUNT_MODE && CW_IsIdle()) { // Only start a new transmission if not already busy
-        // Check if it's time to send the callsign
+#ifdef ENABLE_CW_MENU // <--- This block needs to be updated
+    if (gEeprom.FOXHUNT_MODE) { // Only run this logic if Foxhunt Mode is active
+
+        // Check if it's time to send the mandatory CW ID (10 minutes = 1200 * 500ms)
         if (gFoxhuntCallsignCountdown_500ms > 0) {
             gFoxhuntCallsignCountdown_500ms--;
         } else {
-            // Start transmitting callsign every 10 minutes (1200 * 500ms = 600s)
-            CW_Start(gEeprom.CW_ID);
+            // Start transmitting CW ID and reset the timer
+            CW_Start(gEeprom.CW_ID); // Assuming CW_Start handles the CW transmission of a string
             gFoxhuntCallsignCountdown_500ms = 1200; // Reset for 10 minutes
         }
 
-        // Check if it's time to send the pips (and we are not busy with the callsign)
-        if (CW_IsIdle()) {
+        // Check if it's time to send the pips/beacon (and we are not busy with the CW ID)
+        if (CW_IsIdle()) { // Assuming CW_IsIdle() is defined to check if CW transmission is finished
+
             if (gFoxhuntPipCountdown_500ms > 0) {
                 gFoxhuntPipCountdown_500ms--;
             } else {
-                // Start transmitting pips
-                char pips[gEeprom.CW_PIP_COUNT + 1];
-                memset(pips, 'T', gEeprom.CW_PIP_COUNT); // Using 'T' for a simple pip
-                pips[gEeprom.CW_PIP_COUNT] = '\0';
+                // Prepare and send pips
+                char pips[gEeprom.FOXHUNT_PIP_COUNT + 1];
+                memset(pips, 'T', gEeprom.FOXHUNT_PIP_COUNT); // Using 'T' for a simple pip
+                pips[gEeprom.FOXHUNT_PIP_COUNT] = '\0';
                 CW_Start(pips);
                 
-                // CORRECTED: Multiply interval by 2 for 500ms ticks
-                gFoxhuntPipCountdown_500ms = gEeprom.CW_PIP_INTERVAL * 2; 
+                // Use the configured interval (multiplied by 2 since this runs every 500ms)
+                gFoxhuntPipCountdown_500ms = gEeprom.FOXHUNT_PIP_INTERVAL * 2; 
             }
         }
     }

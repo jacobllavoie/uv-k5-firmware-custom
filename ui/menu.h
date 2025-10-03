@@ -104,14 +104,14 @@ enum
 #ifdef ENABLE_AM_FIX
 	MENU_AM_FIX,
 #endif
-#ifdef ENABLE_CW_MENU
-	MENU_CW_ID_EOT,
-	MENU_FOXHUNT_MODE,
-	MENU_CW_ID,
-	MENU_FOXHUNT_PIP_COUNT,
-	MENU_FOXHUNT_PIP_INTERVAL,
-	MENU_CW_TONE_HZ,
-	MENU_CW_WPM,
+#ifdef ENABLE_CW_MENU 
+    MENU_CW_ID,                 // Text editor for callsign
+	MENU_CW_ID_EOT,             // TX CWID on EOT (replaces MENU_CW_ID_ON_UNKEY)
+	MENU_FOXHUNT_MODE,          // Foxhunt Mode toggle
+    MENU_FOXHUNT_PIP_COUNT,     // Pip count (replaces MENU_CW_PIP_COUNT)
+    MENU_FOXHUNT_PIP_INTERVAL,  // Pip interval (replaces MENU_CW_PIP_INTERVAL)
+    MENU_CW_TONE_HZ,            // CW Tone Frequency
+    MENU_CW_WPM,                // CW Words Per Minute
 #endif
 #ifdef ENABLE_NOAA
 	MENU_NOAA_S,

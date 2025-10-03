@@ -278,34 +278,37 @@ void SETTINGS_InitEEPROM(void)
 		}
 	}
 
-#ifdef ENABLE_CW_MENU
+	#ifdef ENABLE_CW_MENU // <--- ADDED
 	{
+		// Structure to read 8 bytes of CW settings
 		struct {
-			uint8_t  flags;
-			char     CW_ID[10];
-			uint8_t  CW_PIP_COUNT;
-			uint8_t  CW_PIP_INTERVAL;
+			uint8_t flags;
+			uint8_t FOXHUNT_PIP_COUNT;
+			uint8_t FOXHUNT_PIP_INTERVAL;
+			uint8_t CW_WPM;
 			uint16_t CW_TONE_HZ;
-			uint8_t  CW_WPM;
+			uint16_t reserved;
 		} __attribute__((packed)) CW_settings;
 
-		EEPROM_ReadBuffer(0x0F20, &CW_settings, sizeof(CW_settings));
+		EEPROM_ReadBuffer(0x0FB0, &CW_settings, sizeof(CW_settings));
 
-		gEeprom.CW_ID_ON_UNKEY   = (CW_settings.flags & 1) ? true : false;
-		gEeprom.FOXHUNT_MODE     = (CW_settings.flags & 2) ? true : false;
-		gEeprom.CW_AUTO_ID_TX    = (CW_settings.flags & 4) ? true : false;
-
-		if (DTMF_ValidateCodes(CW_settings.CW_ID, sizeof(CW_settings.CW_ID)))
-			memcpy(gEeprom.CW_ID, CW_settings.CW_ID, sizeof(gEeprom.CW_ID));
-		else
-			strcpy(gEeprom.CW_ID, "NOCALL");
-
-		gEeprom.CW_PIP_COUNT     = (CW_settings.CW_PIP_COUNT < 100) ? CW_settings.CW_PIP_COUNT : 10;
-		gEeprom.CW_PIP_INTERVAL  = (CW_settings.CW_PIP_INTERVAL < 100) ? CW_settings.CW_PIP_INTERVAL : 10;
-		gEeprom.CW_TONE_HZ       = (CW_settings.CW_TONE_HZ > 50 && CW_settings.CW_TONE_HZ < 5000) ? CW_settings.CW_TONE_HZ : 800;
-		gEeprom.CW_WPM           = (CW_settings.CW_WPM < 50) ? CW_settings.CW_WPM : 20;
+		gEeprom.CW_ID_EOT            = !!(CW_settings.flags & (1u << 0));
+		gEeprom.FOXHUNT_MODE         = !!(CW_settings.flags & (1u << 1));
+		gEeprom.CW_CCW_ID            = !!(CW_settings.flags & (1u << 2)); // For MENU_CCW_ID
+		
+		gEeprom.FOXHUNT_PIP_COUNT    = (CW_settings.FOXHUNT_PIP_COUNT > 0 && CW_settings.FOXHUNT_PIP_COUNT < 11) ? CW_settings.FOXHUNT_PIP_COUNT : 5;
+		gEeprom.FOXHUNT_PIP_INTERVAL = (CW_settings.FOXHUNT_PIP_INTERVAL > 0 && CW_settings.FOXHUNT_PIP_INTERVAL < 61) ? CW_settings.FOXHUNT_PIP_INTERVAL : 10;
+		gEeprom.CW_WPM               = (CW_settings.CW_WPM > 0 && CW_settings.CW_WPM < 61) ? CW_settings.CW_WPM : 12;
+		gEeprom.CW_TONE_HZ           = (CW_settings.CW_TONE_HZ >= 400 && CW_settings.CW_TONE_HZ <= 1000) ? CW_settings.CW_TONE_HZ : 600;
 	}
-#endif
+	
+	// CW ID string (10 bytes - EEPROM 0x0FB8)
+	EEPROM_ReadBuffer(0x0FB8, gEeprom.CW_ID, sizeof(gEeprom.CW_ID));
+	if (!DTMF_ValidateCodes(gEeprom.CW_ID, sizeof(gEeprom.CW_ID))) {
+		// Use a safe, simple default if EEPROM data is invalid or erased
+		strcpy(gEeprom.CW_ID, "CQ"); 
+	}
+	#endif // <--- END ADDED
 }
 
 void SETTINGS_LoadCalibration(void)
@@ -435,14 +438,18 @@ void SETTINGS_FactoryReset(bool bIsAll)
 	{
 		RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_FIRST + BAND6_400MHz, 43350000);
 		
-		// Add these default values for CW settings
-		gEeprom.CW_ID_ON_UNKEY       = false;
-		gEeprom.FOXHUNT_MODE         = false;
-		strcpy(gEeprom.CW_ID, "UV-K5");
-		gEeprom.CW_PIP_COUNT         = 5;
-		gEeprom.CW_PIP_INTERVAL      = 10;   // seconds
-		gEeprom.CW_TONE_HZ           = 800;  // Hz
-		gEeprom.CW_WPM               = 20;
+		#ifdef ENABLE_CW_MENU // <--- ADDED
+			gEeprom.CW_ID_EOT          = false;
+			gEeprom.FOXHUNT_MODE       = false;
+			gEeprom.CW_CCW_ID          = false;
+			gEeprom.FOXHUNT_PIP_COUNT  = 5;
+			gEeprom.FOXHUNT_PIP_INTERVAL = 10; // seconds
+			gEeprom.CW_WPM             = 12;
+			gEeprom.CW_TONE_HZ         = 600;
+			// Reset CW ID string
+			memset(gEeprom.CW_ID, 0, sizeof(gEeprom.CW_ID));
+			strcpy(gEeprom.CW_ID, "CQ");
+		#endif // <--- END ADDED
 
 		// set the first few memory channels
 		for (i = 0; i < ARRAY_SIZE(gDefaultFrequencyTable); i++)
@@ -509,28 +516,6 @@ void SETTINGS_SaveSettings(void)
 {
 	uint8_t  State[8];
 	uint32_t Password[2];
-
-#ifdef ENABLE_CW_MENU
-    struct {
-        uint8_t  flags;
-        char     CW_ID[10];
-        uint8_t  CW_PIP_COUNT;
-        uint8_t  CW_PIP_INTERVAL;
-        uint16_t CW_TONE_HZ;
-        uint8_t  CW_WPM;
-    } __attribute__((packed)) CW_settings;
-
-    CW_settings.flags = (gEeprom.CW_ID_ON_UNKEY ? 1 : 0) |
-                      (gEeprom.FOXHUNT_MODE   ? 2 : 0) |
-                      (gEeprom.CW_AUTO_ID_TX  ? 4 : 0);
-    memcpy(CW_settings.CW_ID, gEeprom.CW_ID, sizeof(CW_settings.CW_ID));
-    CW_settings.CW_PIP_COUNT    = gEeprom.CW_PIP_COUNT;
-    CW_settings.CW_PIP_INTERVAL = gEeprom.CW_PIP_INTERVAL;
-    CW_settings.CW_TONE_HZ      = gEeprom.CW_TONE_HZ;
-    CW_settings.CW_WPM          = gEeprom.CW_WPM;
-
-    EEPROM_WriteBuffer(0x0F20, &CW_settings);
-#endif
 
 	State[0] = gEeprom.CHAN_1_CALL;
 	State[1] = gEeprom.SQUELCH_LEVEL;
@@ -618,7 +603,35 @@ void SETTINGS_SaveSettings(void)
 #ifdef ENABLE_DTMF_CALLING
 	State[2] = gEeprom.PERMIT_REMOTE_KILL;
 #endif
+
 	EEPROM_WriteBuffer(0x0ED8, State);
+
+// --- ADDED: CW Settings Save ---
+	#ifdef ENABLE_CW_MENU // <--- ADDED
+	{
+		union {
+			uint8_t  _8[8];
+			uint16_t _16[4];
+		} CW_settings;
+
+		CW_settings._8[0] = 0;
+		if (gEeprom.CW_ID_EOT) CW_settings._8[0] |= (1u << 0);
+		if (gEeprom.FOXHUNT_MODE) CW_settings._8[0] |= (1u << 1);
+		if (gEeprom.CW_CCW_ID) CW_settings._8[0] |= (1u << 2);
+
+		CW_settings._8[1] = gEeprom.FOXHUNT_PIP_COUNT;
+		CW_settings._8[2] = gEeprom.FOXHUNT_PIP_INTERVAL;
+		CW_settings._8[3] = gEeprom.CW_WPM;
+		CW_settings._16[2] = gEeprom.CW_TONE_HZ;
+		
+		// Save options (8 bytes to 0x0FB0)
+		EEPROM_WriteBuffer(0x0FB0, CW_settings._8);
+
+		// Save CW ID string (10 bytes starting at 0x0FB8)
+		EEPROM_WriteBuffer(0x0FB8, gEeprom.CW_ID);
+		EEPROM_WriteBuffer(0x0FB8 + 8, gEeprom.CW_ID + 8);
+	}
+	#endif // <--- END ADDED
 
 	State[0] = gEeprom.SCAN_LIST_DEFAULT;
 	State[1] = gEeprom.SCAN_LIST_ENABLED[0];

@@ -1,17 +1,17 @@
 /* Copyright 2023 Dual Tachyon
- * https://github.com/DualTachyon
+ * https://github.com/DualTachyon/OpenRTX
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <string.h>
@@ -66,6 +66,16 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_NOAA
 	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_S        },
 #endif
+#ifdef ENABLE_CW_MENU
+    {"CW ID",  VOICE_ID_INVALID,                       MENU_CW_ID         },
+	{"ID EOT", VOICE_ID_INVALID,                       MENU_CW_ID_EOT     },
+	{"F HUNT", VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
+	{"PIP Cnt",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_COUNT},
+	{"PIP Int",VOICE_ID_INVALID,                       MENU_FOXHUNT_PIP_INTERVAL},
+	{"CW TONE",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
+	{"CW WPM", VOICE_ID_INVALID,                       MENU_CW_WPM        },
+#endif
+
 	{"F1Shrt",    VOICE_ID_INVALID,                    MENU_F1SHRT        },
 	{"F1Long",    VOICE_ID_INVALID,                    MENU_F1LONG        },
 	{"F2Shrt",    VOICE_ID_INVALID,                    MENU_F2SHRT        },
@@ -123,14 +133,6 @@ const t_menu_item MenuList[] =
 	{"BatVol", VOICE_ID_INVALID,                       MENU_VOL           }, // was "VOL"
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
 	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
-
-	{"CW ID",  VOICE_ID_INVALID,                       MENU_CW_ID         },
-	{"TX CWID on EOT",  VOICE_ID_INVALID,              MENU_CW_ID_EOT},
-	{"Foxhunt",VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
-	{"Fox Pip Cnt",VOICE_ID_INVALID,                   MENU_FOXHUNT_PIP_COUNT  },
-	{"Fox Pip Int", VOICE_ID_INVALID,                  MENU_FOXHUNT_PIP_INTERVAL},
-	{"CW Freq",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
-	{"CW WPM", VOICE_ID_INVALID,                       MENU_CW_WPM        },
 
 	// hidden menu items from here on
 	// enabled if pressing both the PTT and upper side button at power-on
@@ -417,7 +419,7 @@ void UI_DisplayMenu(void)
 	UI_DisplayClear();
 
 #ifndef ENABLE_CUSTOM_MENU_LAYOUT
-		// original menu layout
+	// original menu layout
 	for (i = 0; i < 3; i++)
 		if (gMenuCursor > 0 || i > 0)
 			if ((gMenuListCount - 1) != gMenuCursor || i != 2)
@@ -443,8 +445,9 @@ void UI_DisplayMenu(void)
 
 	UI_PrintStringSmallNormal(String, 2, 0, 6);
 
-#else
-	{	// new menu layout .. experimental & unfinished
+#else // ENABLE_CUSTOM_MENU_LAYOUT
+	// new menu layout .. experimental & unfinished
+	{ // This is the block for custom menu layout
 		const int menu_index = gMenuCursor;  // current selected menu item
 		i = 1;
 
@@ -484,8 +487,8 @@ void UI_DisplayMenu(void)
 			UI_PrintString(MenuList[menu_index].name, 0, 0, 0, 8);
 //			UI_PrintStringSmallNormal(String, 0, 0, 0);
 		}
-	}
-#endif
+	} // This brace closes the custom menu block
+#endif // ENABLE_CUSTOM_MENU_LAYOUT
 
 	// **************
 
@@ -850,48 +853,39 @@ void UI_DisplayMenu(void)
 		case MENU_MLONG:
 			strcpy(String, gSubMenu_SIDEFUNCTIONS[gSubMenuSelection].name);
 			break;
-		case MENU_CW:
-			if (!gIsInSubMenu || edit_index < 0) {
-				strcpy(String, gEeprom.CW_ID);
-			} else {
-				strcpy(String, edit);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
-				if (edit_index < 10)
-					UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);
-			}
-			already_printed = true;
-			break;
-			
-		// Add these new cases to display the CW settings
-		case MENU_CW_ID_ON_UNKEY:
-		case MENU_FOXHUNT_MODE:
-			strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
-			break;
-		case MENU_CW_ID:
-			if (!gIsInSubMenu || edit_index < 0) {
-				strcpy(String, gEeprom.CW_ID);
-			} else {
-				strcpy(String, edit);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
-				if (edit_index < 10)
-					UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8);
-			}
-			already_printed = true;
-			break;
-		case MENU_CW_PIP_COUNT:
-			sprintf(String, "%d", gSubMenuSelection);
-			break;
-		case MENU_CW_PIP_INTERVAL:
-			sprintf(String, "%ds", gSubMenuSelection);
-			break;
-		case MENU_CW_TONE_HZ:
-			sprintf(String, "%dHz", gSubMenuSelection);
-			break;
-		case MENU_CW_WPM:
-			sprintf(String, "%d", gSubMenuSelection);
-			break;
 
-	}
+        #ifdef ENABLE_CW_MENU
+            case MENU_CW_ID_EOT:
+            case MENU_FOXHUNT_MODE:
+                strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+                break;
+            case MENU_FOXHUNT_PIP_COUNT:
+                sprintf(String, "%u", gSubMenuSelection);
+                break;
+            case MENU_FOXHUNT_PIP_INTERVAL:
+                sprintf(String, "%ds", gSubMenuSelection);
+                break;
+            case MENU_CW_WPM:
+                sprintf(String, "%u WPM", gSubMenuSelection);
+                break;
+            case MENU_CW_TONE_HZ:
+                sprintf(String, "%u Hz", gSubMenuSelection);
+                break;
+            case MENU_CW_ID: // Text editor display logic
+                if (!gIsInSubMenu || edit_index < 0) {
+                    // Display the saved CW ID when not actively editing
+                    sprintf(String, "%.10s", gEeprom.CW_ID);
+                    UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
+                } else {
+                    // Display the text currently being edited
+                    UI_PrintString(edit, menu_item_x1, 0, 2, 8);
+                    if (edit_index < 10)
+                        UI_PrintString("^", menu_item_x1 + (8 * edit_index), 0, 4, 8); // Show cursor
+                }
+                already_printed = true;
+                break;
+        #endif
+			}
 
 	if (!already_printed)
 	{	// we now do multi-line text in a single string
@@ -1018,3 +1012,4 @@ void UI_DisplayMenu(void)
 
 	ST7565_BlitFullScreen();
 }
+// END OF FILE

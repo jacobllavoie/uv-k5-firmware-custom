@@ -254,16 +254,17 @@ typedef struct {
 	uint8_t               S0_LEVEL;
 	uint8_t               S9_LEVEL;
 #endif
-#ifdef ENABLE_CW_MENU 
-    bool      CW_ID_ON_UNKEY;
-    bool      FOXHUNT_MODE; // <--- This one already existed
-    bool      CW_AUTO_ID_TX; // <--- ADD THIS NEW BOOLEAN VARIABLE
-    char      CW_ID[10];
-    uint8_t   CW_PIP_COUNT;
-    uint8_t   CW_PIP_INTERVAL;
-    uint16_t  CW_TONE_HZ;
-    uint8_t   CW_WPM;
-#endif // --- END of ENABLE_CW_MENU
+// --- ADDED: CW Settings (Aligned with latest requirements) ---
+#ifdef ENABLE_CW_MENU
+	bool                  CW_ID_EOT;             // Renamed from CW_ID_ON_UNKEY
+	bool                  FOXHUNT_MODE;          // Foxhunt Mode toggle
+	bool                  CW_CCW_ID;             // Corresponds to MENU_CCW_ID
+	char                  CW_ID[10];             // CW ID/Callsign (Text Editor)
+	uint8_t               FOXHUNT_PIP_COUNT;     // Renamed from CW_PIP_COUNT
+	uint8_t               FOXHUNT_PIP_INTERVAL;  // Renamed from CW_PIP_INTERVAL
+	uint16_t              CW_TONE_HZ;            // CW Tone Frequency
+	uint8_t               CW_WPM;                // CW Words Per Minute
+#endif
 } EEPROM_Config_t;
 
 extern EEPROM_Config_t gEeprom;

@@ -124,13 +124,11 @@ const t_menu_item MenuList[] =
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
 	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 
-	{"CW Txt", VOICE_ID_INVALID,                       MENU_CW_TEXT_ENTRY },
-	{"CW",     VOICE_ID_INVALID,                       MENU_CW            },
-	{"CWUnkey",VOICE_ID_INVALID,                       MENU_CW_ID_ON_UNKEY},
-	{"Foxhunt",VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
 	{"CW ID",  VOICE_ID_INVALID,                       MENU_CW_ID         },
-	{"CW Pips",VOICE_ID_INVALID,                       MENU_CW_PIP_COUNT  },
-	{"CW Int", VOICE_ID_INVALID,                       MENU_CW_PIP_INTERVAL},
+	{"TX CWID on EOT",  VOICE_ID_INVALID,              MENU_CW_ID_EOT},
+	{"Foxhunt",VOICE_ID_INVALID,                       MENU_FOXHUNT_MODE  },
+	{"Fox Pip Cnt",VOICE_ID_INVALID,                   MENU_FOXHUNT_PIP_COUNT  },
+	{"Fox Pip Int", VOICE_ID_INVALID,                  MENU_FOXHUNT_PIP_INTERVAL},
 	{"CW Freq",VOICE_ID_INVALID,                       MENU_CW_TONE_HZ    },
 	{"CW WPM", VOICE_ID_INVALID,                       MENU_CW_WPM        },
 

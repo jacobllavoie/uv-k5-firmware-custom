@@ -274,9 +274,38 @@ void SETTINGS_InitEEPROM(void)
 		if (gCustomAesKey[i] != 0xFFFFFFFFu)
 		{
 			bHasCustomAesKey = true;
-			return;
+			break;
 		}
 	}
+
+#ifdef ENABLE_CW_MENU
+	{
+		struct {
+			uint8_t  flags;
+			char     CW_ID[10];
+			uint8_t  CW_PIP_COUNT;
+			uint8_t  CW_PIP_INTERVAL;
+			uint16_t CW_TONE_HZ;
+			uint8_t  CW_WPM;
+		} __attribute__((packed)) CW_settings;
+
+		EEPROM_ReadBuffer(0x0F20, &CW_settings, sizeof(CW_settings));
+
+		gEeprom.CW_ID_ON_UNKEY   = (CW_settings.flags & 1) ? true : false;
+		gEeprom.FOXHUNT_MODE     = (CW_settings.flags & 2) ? true : false;
+		gEeprom.CW_AUTO_ID_TX    = (CW_settings.flags & 4) ? true : false;
+
+		if (DTMF_ValidateCodes(CW_settings.CW_ID, sizeof(CW_settings.CW_ID)))
+			memcpy(gEeprom.CW_ID, CW_settings.CW_ID, sizeof(gEeprom.CW_ID));
+		else
+			strcpy(gEeprom.CW_ID, "NOCALL");
+
+		gEeprom.CW_PIP_COUNT     = (CW_settings.CW_PIP_COUNT < 100) ? CW_settings.CW_PIP_COUNT : 10;
+		gEeprom.CW_PIP_INTERVAL  = (CW_settings.CW_PIP_INTERVAL < 100) ? CW_settings.CW_PIP_INTERVAL : 10;
+		gEeprom.CW_TONE_HZ       = (CW_settings.CW_TONE_HZ > 50 && CW_settings.CW_TONE_HZ < 5000) ? CW_settings.CW_TONE_HZ : 800;
+		gEeprom.CW_WPM           = (CW_settings.CW_WPM < 50) ? CW_settings.CW_WPM : 20;
+	}
+#endif
 }
 
 void SETTINGS_LoadCalibration(void)
@@ -480,6 +509,28 @@ void SETTINGS_SaveSettings(void)
 {
 	uint8_t  State[8];
 	uint32_t Password[2];
+
+#ifdef ENABLE_CW_MENU
+    struct {
+        uint8_t  flags;
+        char     CW_ID[10];
+        uint8_t  CW_PIP_COUNT;
+        uint8_t  CW_PIP_INTERVAL;
+        uint16_t CW_TONE_HZ;
+        uint8_t  CW_WPM;
+    } __attribute__((packed)) CW_settings;
+
+    CW_settings.flags = (gEeprom.CW_ID_ON_UNKEY ? 1 : 0) |
+                      (gEeprom.FOXHUNT_MODE   ? 2 : 0) |
+                      (gEeprom.CW_AUTO_ID_TX  ? 4 : 0);
+    memcpy(CW_settings.CW_ID, gEeprom.CW_ID, sizeof(CW_settings.CW_ID));
+    CW_settings.CW_PIP_COUNT    = gEeprom.CW_PIP_COUNT;
+    CW_settings.CW_PIP_INTERVAL = gEeprom.CW_PIP_INTERVAL;
+    CW_settings.CW_TONE_HZ      = gEeprom.CW_TONE_HZ;
+    CW_settings.CW_WPM          = gEeprom.CW_WPM;
+
+    EEPROM_WriteBuffer(0x0F20, &CW_settings);
+#endif
 
 	State[0] = gEeprom.CHAN_1_CALL;
 	State[1] = gEeprom.SQUELCH_LEVEL;

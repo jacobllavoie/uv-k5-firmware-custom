@@ -330,4 +330,9 @@ void SETTINGS_WriteBuildOptions(void);
 #ifdef ENABLE_FEAT_F4HWN
     void SETTINGS_ResetTxLock(void);
 #endif
+
+#ifdef ENABLE_CW
+void SETTINGS_SaveCwSettings(void);
+#endif
+
 #endif

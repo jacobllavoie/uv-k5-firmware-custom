@@ -34,5 +34,8 @@ void MENU_StopCssScan(void);
 
 void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
 
+#ifdef ENABLE_CW
+void MENU_SaveCWSettings(void);
 #endif
 
+#endif

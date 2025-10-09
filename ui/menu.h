@@ -219,7 +219,7 @@ extern const char        gSubMenu_BAT_TXT[3][8];
 extern const char        gSubMenu_BATTYP[3][9];
 
 #ifdef ENABLE_CW
-extern const char gSubMenu_CW_MODE[][10];
+extern const char gSubMenu_CW_MODE[4][10];
 #endif
 
 #ifndef ENABLE_FEAT_F4HWN

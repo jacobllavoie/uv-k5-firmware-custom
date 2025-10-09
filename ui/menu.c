@@ -19,6 +19,9 @@
 
 #include "../app/dtmf.h"
 #include "../app/menu.h"
+#ifdef ENABLE_CW
+#include "../app/cw.h"
+#endif
 #include "../bitmaps.h"
 #include "../board.h"
 #include "../dcs.h"
@@ -352,11 +355,12 @@ const char gSubMenu_BATTYP[][9] =
 };
 
 #ifdef ENABLE_CW
-const char gSubMenu_CW_MODE[][10] =
+const char gSubMenu_CW_MODE[4][10] =
 {
-    "IAMBIC A",
-    "IAMBIC B",
-    "VIBROPLEX"
+    "CW-FM",
+    "CW-NFM",
+    "FMCW-FM",
+    "FMCW-NFM"
 };
 #endif
 
@@ -1042,10 +1046,26 @@ void UI_DisplayMenu(void)
             strcpy(String, gSubMenu_CW_MODE[gSubMenuSelection]);
             break;
         case MENU_CW_MSG1:
-            strcpy(String, gCWSettings.messages[0]);
-            break;
         case MENU_CW_MSG2:
-            strcpy(String, gCWSettings.messages[1]);
+            {
+                const uint8_t msg_index = (UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1) ? 0 : 1;
+
+                if (!gIsInSubMenu)
+                    edit_index = -1;
+
+                if (edit_index < 0)
+                {
+                    char *pMsg = gCWSettings.messages[msg_index];
+                    UI_PrintString(pMsg[0] ? pMsg : "--", menu_item_x1, menu_item_x2, 2, 8);
+                }
+                else
+                {
+                    UI_PrintString(edit, menu_item_x1, menu_item_x2, 2, 8);
+                    if (edit_index < 16)
+                        UI_PrintString("^", menu_item_x1 - 1 + (8 * edit_index), 0, 4, 8);
+                }
+                already_printed = true;
+            }
             break;
 #endif
 

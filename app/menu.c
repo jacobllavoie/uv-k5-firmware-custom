@@ -22,6 +22,9 @@
 #include "app/dtmf.h"
 #include "app/generic.h"
 #include "app/menu.h"
+#ifdef ENABLE_CW
+#include "../app/cw.h"
+#endif
 #include "app/scanner.h"
 #include "audio.h"
 #include "board.h"

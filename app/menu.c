@@ -372,6 +372,26 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 2;
             break;
 
+#ifdef ENABLE_CW
+        case MENU_CW_ENABLED:
+            *pMax = 1;
+            break;
+        case MENU_CW_WPM:
+            *pMin = 5;
+            *pMax = 50;
+            break;
+        case MENU_CW_TONE:
+            *pMin = 300;
+            *pMax = 1200;
+            break;
+        case MENU_CW_MODE:
+            *pMax = ARRAY_SIZE(gSubMenu_CW_MODE) - 1;
+            break;
+        case MENU_CW_MSG1:
+        case MENU_CW_MSG2:
+            return -1;
+#endif
+
         case MENU_F1SHRT:
         case MENU_F1LONG:
         case MENU_F2SHRT:
@@ -1334,6 +1354,24 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gEeprom.BATTERY_TYPE;
             break;
 
+#ifdef ENABLE_CW
+        case MENU_CW_ENABLED:
+            gSubMenuSelection = gCWSettings.enabled;
+            break;
+        case MENU_CW_WPM:
+            gSubMenuSelection = gCWSettings.wpm;
+            break;
+        case MENU_CW_TONE:
+            gSubMenuSelection = gCWSettings.tone_hz;
+            break;
+        case MENU_CW_MODE:
+            gSubMenuSelection = gCWSettings.mode;
+            break;
+        case MENU_CW_MSG1:
+        case MENU_CW_MSG2:
+            break;
+#endif
+
         case MENU_F1SHRT:
         case MENU_F1LONG:
         case MENU_F2SHRT:
@@ -2004,10 +2042,9 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                         gRequestDisplayScreen = DISPLAY_MENU;
                     }
                 }
-                break;
             }
-
-            GENERIC_Key_F(bKeyPressed, bKeyHeld);
+            else
+                GENERIC_Key_F(bKeyPressed, bKeyHeld);
             break;
         case KEY_PTT:
             GENERIC_Key_PTT(bKeyPressed);
@@ -2016,21 +2053,5 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
             if (!bKeyHeld && bKeyPressed)
                 gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
             break;
-    }
-
-    if (gScreenToDisplay == DISPLAY_MENU)
-    {
-        if (UI_MENU_GetCurrentMenuId() == MENU_VOL ||
-            #ifdef ENABLE_F_CAL_MENU
-                UI_MENU_GetCurrentMenuId() == MENU_F_CALI ||
-            #endif
-            UI_MENU_GetCurrentMenuId() == MENU_BATCAL)
-        {
-            gMenuCountdown = menu_timeout_long_500ms;
-        }
-        else
-        {
-            gMenuCountdown = menu_timeout_500ms;
-        }
     }
 }

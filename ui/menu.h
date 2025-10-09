@@ -122,6 +122,14 @@ enum
 #ifndef ENABLE_FEAT_F4HWN
     MENU_SCREN,
 #endif
+#ifdef ENABLE_CW
+	MENU_CW_ENABLED,
+	MENU_CW_WPM,
+	MENU_CW_TONE,
+	MENU_CW_MODE,
+	MENU_CW_MSG1,
+	MENU_CW_MSG2,
+#endif
 #ifdef ENABLE_F_CAL_MENU
     MENU_F_CALI,  // reference xtal calibration
 #endif
@@ -209,6 +217,10 @@ extern const char* const gSubMenu_F_LOCK[F_LOCK_LEN];
 extern const char        gSubMenu_RX_TX[4][6];
 extern const char        gSubMenu_BAT_TXT[3][8];
 extern const char        gSubMenu_BATTYP[3][9];
+
+#ifdef ENABLE_CW
+extern const char gSubMenu_CW_MODE[][10];
+#endif
 
 #ifndef ENABLE_FEAT_F4HWN
     extern const char        gSubMenu_SCRAMBLER[11][7];

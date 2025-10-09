@@ -65,6 +65,15 @@ const t_menu_item MenuList[] =
     {"ChDele",      MENU_DEL_CH        }, // was "DEL-CH"
     {"ChName",      MENU_MEM_NAME      },
 
+#ifdef ENABLE_CW
+    {"CW",          MENU_CW_ENABLED    },
+    {"WPM",      MENU_CW_WPM        },
+    {"ToneHz",     MENU_CW_TONE       },
+    {"CWMode",     MENU_CW_MODE       },
+    {"CWMsg1",     MENU_CW_MSG1       },
+    {"CWMsg2",     MENU_CW_MSG2       },
+#endif
+
     {"SList",       MENU_S_LIST        },
     {"SList1",      MENU_SLIST1        },
     {"SList2",      MENU_SLIST2        },
@@ -341,6 +350,15 @@ const char gSubMenu_BATTYP[][9] =
     "2200mAh",
     "3500mAh"
 };
+
+#ifdef ENABLE_CW
+const char gSubMenu_CW_MODE[][10] =
+{
+    "IAMBIC A",
+    "IAMBIC B",
+    "VIBROPLEX"
+};
+#endif
 
 #ifndef ENABLE_FEAT_F4HWN
 const char gSubMenu_SCRAMBLER[][7] =
@@ -1009,6 +1027,27 @@ void UI_DisplayMenu(void)
                 BATTERY_VoltsToPercent(gBatteryVoltageAverage));
 #endif
             break;
+
+#ifdef ENABLE_CW
+        case MENU_CW_ENABLED:
+            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+            break;
+        case MENU_CW_WPM:
+            sprintf(String, "%d WPM", gSubMenuSelection);
+            break;
+        case MENU_CW_TONE:
+            sprintf(String, "%d Hz", gSubMenuSelection);
+            break;
+        case MENU_CW_MODE:
+            strcpy(String, gSubMenu_CW_MODE[gSubMenuSelection]);
+            break;
+        case MENU_CW_MSG1:
+            strcpy(String, gCWSettings.messages[0]);
+            break;
+        case MENU_CW_MSG2:
+            strcpy(String, gCWSettings.messages[1]);
+            break;
+#endif
 
         case MENU_RESET:
             strcpy(String, gSubMenu_RESET[gSubMenuSelection]);

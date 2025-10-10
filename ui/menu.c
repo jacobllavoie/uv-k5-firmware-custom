@@ -75,6 +75,16 @@ const t_menu_item MenuList[] =
     {"CWMode",     MENU_CW_MODE       },
     {"CWMsg1",     MENU_CW_MSG1       },
     {"CWMsg2",     MENU_CW_MSG2       },
+    {"FM/CW",       MENU_CW_FMCW       },
+    {"CW W/N",      MENU_CW_WN         },
+    {"CW ID",       MENU_CW_ID         },
+    {"Grid",        MENU_CW_GRID       },
+    {"EOT",         MENU_CW_EOT        },
+    {"T-Hunt",      MENU_CW_T_HUNT     },
+    {"PIPCnt",      MENU_CW_PIP_CNT    },
+    {"PIPInt",      MENU_CW_PIP_INT    },
+    {"ID Int",      MENU_CW_ID_INT     },
+    {"SOS",         MENU_CW_SOS        },
 #endif
 
     {"SList",       MENU_S_LIST        },
@@ -355,6 +365,12 @@ const char gSubMenu_BATTYP[][9] =
 };
 
 #ifdef ENABLE_CW
+const char gSubMenu_CW_TX_Mode[][4] =
+{
+    "FM",
+    "CW"
+};
+
 const char gSubMenu_CW_MODE[4][10] =
 {
     "CW-FM",
@@ -1066,6 +1082,62 @@ void UI_DisplayMenu(void)
                 }
                 already_printed = true;
             }
+            break;
+
+        case MENU_CW_FMCW:
+            strcpy(String, gSubMenu_CW_TX_Mode[gSubMenuSelection]);
+            break;
+
+        case MENU_CW_WN:
+            strcpy(String, gSubMenu_W_N[gSubMenuSelection]);
+            break;
+
+        case MENU_CW_ID:
+        case MENU_CW_GRID:
+            {
+                char *pStr = (UI_MENU_GetCurrentMenuId() == MENU_CW_ID) ? gCWSettings.callsign : gCWSettings.grid_square;
+                const uint8_t max_len = 15;
+
+                if (!gIsInSubMenu)
+                    edit_index = -1;
+
+                if (edit_index < 0)
+                {
+                    UI_PrintString(pStr[0] ? pStr : "--", menu_item_x1, menu_item_x2, 2, 8);
+                }
+                else
+                {
+                    UI_PrintString(edit, menu_item_x1, menu_item_x2, 2, 8);
+                    if (edit_index < max_len)
+                        UI_PrintString("^", menu_item_x1 - 1 + (8 * edit_index), 0, 4, 8);
+                }
+                already_printed = true;
+            }
+            break;
+
+        case MENU_CW_EOT:
+        case MENU_CW_T_HUNT:
+            strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+            break;
+
+        case MENU_CW_SOS:
+            if (!gIsInSubMenu) {
+                strcpy(String, "EMERGENCY\nONLY");
+            } else {
+                strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+            }
+            break;
+
+        case MENU_CW_PIP_CNT:
+            sprintf(String, "%d", gSubMenuSelection);
+            break;
+
+        case MENU_CW_PIP_INT:
+            sprintf(String, "%ds", gSubMenuSelection);
+            break;
+
+        case MENU_CW_ID_INT:
+            sprintf(String, "%dm", gSubMenuSelection);
             break;
 #endif
 

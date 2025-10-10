@@ -393,6 +393,32 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
         case MENU_CW_MSG1:
         case MENU_CW_MSG2:
             return -1;
+		case MENU_CW_FMCW:
+			*pMax = ARRAY_SIZE(gSubMenu_CW_TX_Mode) - 1;
+			break;
+		case MENU_CW_WN:
+			*pMax = ARRAY_SIZE(gSubMenu_W_N) - 1;
+			break;
+		case MENU_CW_ID:
+		case MENU_CW_GRID:
+			return -1;
+		case MENU_CW_EOT:
+		case MENU_CW_T_HUNT:
+		case MENU_CW_SOS:
+			*pMax = 1;
+			break;
+		case MENU_CW_PIP_CNT:
+			*pMin = 1;
+			*pMax = 20;
+			break;
+		case MENU_CW_PIP_INT:
+			*pMin = 1;
+			*pMax = 60;
+			break;
+		case MENU_CW_ID_INT:
+			*pMin = 1;
+			*pMax = 60;
+			break;
 #endif
 
         case MENU_F1SHRT:
@@ -995,6 +1021,73 @@ void MENU_AcceptSetting(void)
             gRequestSaveChannel       = 1;
             return;
 #endif
+
+#ifdef ENABLE_CW
+		case MENU_CW_ENABLED:
+			gCWSettings.enabled = gSubMenuSelection;
+			break;
+		case MENU_CW_WPM:
+			gCWSettings.wpm = gSubMenuSelection;
+			break;
+		case MENU_CW_TONE:
+			gCWSettings.tone_hz = gSubMenuSelection;
+			break;
+		case MENU_CW_MODE:
+			gCWSettings.mode = gSubMenuSelection;
+			break;
+		case MENU_CW_MSG1:
+		case MENU_CW_MSG2:
+			{
+				const uint8_t msg_index = (UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1) ? 0 : 1;
+				for (int i = 15; i >= 0; i--)
+				{
+					if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0x00 && edit[i] != 0xff)
+						break;
+					edit[i] = ' ';
+				}
+				strcpy(gCWSettings.messages[msg_index], edit);
+			}
+			break;
+		case MENU_CW_FMCW:
+			gCWSettings.tx_mode = gSubMenuSelection;
+			break;
+		case MENU_CW_WN:
+			gCWSettings.bandwidth = gSubMenuSelection;
+			break;
+		case MENU_CW_ID:
+		case MENU_CW_GRID:
+			{
+				char *pStr = (UI_MENU_GetCurrentMenuId() == MENU_CW_ID) ? gCWSettings.callsign : gCWSettings.grid_square;
+				const uint8_t max_len = 10;
+				for (int i = max_len - 1; i >= 0; i--)
+				{
+					if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0x00 && edit[i] != 0xff)
+						break;
+					edit[i] = ' ';
+				}
+				strcpy(pStr, edit);
+			}
+			break;
+		case MENU_CW_EOT:
+			gCWSettings.eot_enabled = gSubMenuSelection;
+			break;
+		case MENU_CW_T_HUNT:
+			// T-Hunt
+			gCWSettings.fox_hunt_enabled = gSubMenuSelection;
+			break;
+		case MENU_CW_SOS:
+			gCWSettings.sos_mode_enabled = gSubMenuSelection;
+			break;
+		case MENU_CW_PIP_CNT:
+			gCWSettings.pip_count = gSubMenuSelection;
+			break;
+		case MENU_CW_PIP_INT:
+			gCWSettings.pip_interval = gSubMenuSelection;
+			break;
+		case MENU_CW_ID_INT:
+			gCWSettings.id_interval = gSubMenuSelection;
+			break;
+#endif
     }
 
     gRequestSaveSettings = true;
@@ -1373,6 +1466,33 @@ void MENU_ShowCurrentSetting(void)
         case MENU_CW_MSG1:
         case MENU_CW_MSG2:
             break;
+		case MENU_CW_FMCW:
+			gSubMenuSelection = gCWSettings.tx_mode;
+			break;
+		case MENU_CW_WN:
+			gSubMenuSelection = gCWSettings.bandwidth;
+			break;
+		case MENU_CW_ID:
+		case MENU_CW_GRID:
+			break;
+		case MENU_CW_EOT:
+			gSubMenuSelection = gCWSettings.eot_enabled;
+			break;
+		case MENU_CW_T_HUNT:
+			gSubMenuSelection = gCWSettings.fox_hunt_enabled;
+			break;
+		case MENU_CW_SOS:
+			gSubMenuSelection = gCWSettings.sos_mode_enabled;
+			break;
+		case MENU_CW_PIP_CNT:
+			gSubMenuSelection = gCWSettings.pip_count;
+			break;
+		case MENU_CW_PIP_INT:
+			gSubMenuSelection = gCWSettings.pip_interval;
+			break;
+		case MENU_CW_ID_INT:
+			gSubMenuSelection = gCWSettings.id_interval;
+			break;
 #endif
 
         case MENU_F1SHRT:
@@ -1772,6 +1892,70 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
         }
     }
 
+#ifdef ENABLE_CW
+	if (UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1 || UI_MENU_GetCurrentMenuId() == MENU_CW_MSG2)
+	{
+		if (edit_index < 0)
+		{
+			const uint8_t msg_index = (UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1) ? 0 : 1;
+			strcpy(edit, gCWSettings.messages[msg_index]);
+
+			edit_index = strlen(edit);
+			while (edit_index < 16)
+				edit[edit_index++] = '_';
+			edit[edit_index] = 0;
+			edit_index = 0;
+
+			memcpy(edit_original, edit, sizeof(edit_original));
+			return;
+		}
+		else
+		if (edit_index >= 0 && edit_index < 16)
+		{
+			if (++edit_index < 16)
+				return;
+
+			gFlagAcceptSetting  = false;
+			gAskForConfirmation = 0;
+			if (memcmp(edit_original, edit, sizeof(edit_original)) == 0)
+			{
+				gIsInSubMenu = false;
+			}
+		}
+	}
+
+	if (UI_MENU_GetCurrentMenuId() == MENU_CW_ID || UI_MENU_GetCurrentMenuId() == MENU_CW_GRID)
+	{
+		char *pStr = (UI_MENU_GetCurrentMenuId() == MENU_CW_ID) ? gCWSettings.callsign : gCWSettings.grid_square;
+		const uint8_t max_len = 10;
+		if (edit_index < 0)
+		{
+			strcpy(edit, pStr);
+			edit_index = strlen(edit);
+			while (edit_index < max_len)
+				edit[edit_index++] = '_';
+			edit[edit_index] = 0;
+			edit_index = 0;
+
+			memcpy(edit_original, edit, sizeof(edit_original));
+			return;
+		}
+		else
+		if (edit_index >= 0 && edit_index < max_len)
+		{
+			if (++edit_index < max_len)
+				return;
+
+			gFlagAcceptSetting  = false;
+			gAskForConfirmation = 0;
+			if (memcmp(edit_original, edit, sizeof(edit_original)) == 0)
+			{
+				gIsInSubMenu = false;
+			}
+		}
+	}
+#endif
+
     // exiting the sub menu
 
     if (gIsInSubMenu)
@@ -1908,6 +2092,30 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
         }
         return;
     }
+
+#ifdef ENABLE_CW
+	if ((UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1 || UI_MENU_GetCurrentMenuId() == MENU_CW_MSG2 || UI_MENU_GetCurrentMenuId() == MENU_CW_ID || UI_MENU_GetCurrentMenuId() == MENU_CW_GRID) && gIsInSubMenu && edit_index >= 0)
+	{   // change the character
+		if (bKeyPressed && edit_index < 16 && Direction != 0)
+		{
+			const char   unwanted[] = "$%&!\"':;?^`|{}";
+			char         c          = edit[edit_index] + Direction;
+			unsigned int i          = 0;
+			while (i < sizeof(unwanted) && c >= 32 && c <= 126)
+			{
+				if (c == unwanted[i++])
+				{   // choose next character
+					c += Direction;
+					i = 0;
+				}
+			}
+			edit[edit_index] = (c < 32) ? 126 : (c > 126) ? 32 : c;
+
+			gRequestDisplayScreen = DISPLAY_MENU;
+		}
+		return;
+	}
+#endif
 
     if (!bKeyHeld)
     {

@@ -129,6 +129,16 @@ enum
 	MENU_CW_MODE,
 	MENU_CW_MSG1,
 	MENU_CW_MSG2,
+	MENU_CW_FMCW,
+	MENU_CW_WN,
+	MENU_CW_ID,
+	MENU_CW_GRID,
+	MENU_CW_EOT,
+	MENU_CW_T_HUNT,
+	MENU_CW_PIP_CNT,
+	MENU_CW_PIP_INT,
+	MENU_CW_ID_INT,
+	MENU_CW_SOS,
 #endif
 #ifdef ENABLE_F_CAL_MENU
     MENU_F_CALI,  // reference xtal calibration
@@ -219,6 +229,7 @@ extern const char        gSubMenu_BAT_TXT[3][8];
 extern const char        gSubMenu_BATTYP[3][9];
 
 #ifdef ENABLE_CW
+extern const char gSubMenu_CW_TX_Mode[2][4];
 extern const char gSubMenu_CW_MODE[4][10];
 #endif
 

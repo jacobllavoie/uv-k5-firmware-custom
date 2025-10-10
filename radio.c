@@ -19,6 +19,9 @@
 
 #include "am_fix.h"
 #include "app/dtmf.h"
+#ifdef ENABLE_CW
+#include "app/cw.h"
+#endif
 #ifdef ENABLE_FMRADIO
     #include "app/fm.h"
 #endif
@@ -1215,8 +1218,22 @@ void RADIO_SendCssTail(void)
     SYSTEM_DelayMs(200);
 }
 
+#ifdef ENABLE_CW
+void RADIO_TransmitCwID(void)
+{
+    CW_Transmit_String(gCWSettings.callsign);
+}
+#endif
+
 void RADIO_SendEndOfTransmission(void)
 {
+#ifdef ENABLE_CW
+    if (gCWSettings.eot_enabled) {
+        RADIO_TransmitCwID();
+    }
+
+
+#endif
     BK4819_PlayRoger();
     DTMF_SendEndOfTransmission();
 

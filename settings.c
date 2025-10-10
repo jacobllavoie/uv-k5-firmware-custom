@@ -395,6 +395,10 @@ void SETTINGS_InitEEPROM(void)
         gSetting_set_ptt_session = gSetting_set_ptt;
         gEeprom.KEY_LOCK_PTT = gSetting_set_lck;
     #endif
+
+#ifdef ENABLE_CW
+    CW_LoadSettings();
+#endif
 }
 
 void SETTINGS_LoadCalibration(void)
@@ -828,6 +832,10 @@ void SETTINGS_SaveSettings(void)
 #ifdef ENABLE_FEAT_F4HWN_VOL
     SETTINGS_WriteCurrentVol();
 #endif
+
+#ifdef ENABLE_CW
+    CW_SaveSettings();
+#endif
 }
 
 void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode)
@@ -1054,17 +1062,6 @@ void SETTINGS_ResetTxLock(void)
         EEPROM_ReadBuffer(OffsetVFO + 8, State, sizeof(State));
         State[4] |= (1 << 6);
         EEPROM_WriteBuffer(OffsetVFO + 8, State);
-    }
-}
-#endif
-
-#ifdef ENABLE_CW
-void SETTINGS_SaveCwSettings(void)
-{
-    const uint8_t *p = (const uint8_t*)&gCWSettings;
-    for (unsigned int i = 0; i < sizeof(gCWSettings); i += 8)
-    {
-        EEPROM_WriteBuffer(CW_SETTINGS_EEPROM_ADDR + i, p + i);
     }
 }
 #endif

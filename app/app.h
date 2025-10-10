@@ -31,5 +31,8 @@ void     APP_Update(void);
 void     APP_TimeSlice10ms(void);
 void     APP_TimeSlice500ms(void);
 
+#ifdef ENABLE_CW
+void     FOXHUNT_TimeSlice(void);
 #endif
 
+#endif

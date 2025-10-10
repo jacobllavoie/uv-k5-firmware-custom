@@ -27,6 +27,9 @@
 #include "app/app.h"
 #include "app/chFrScanner.h"
 #include "app/dtmf.h"
+#ifdef ENABLE_CW
+#include "app/cw.h"
+#endif
 #ifdef ENABLE_FLASHLIGHT
     #include "app/flashlight.h"
 #endif
@@ -895,6 +898,34 @@ void APP_Update(void)
     if (gFlagPlayQueuedVoice) {
             AUDIO_PlayQueuedVoice();
             gFlagPlayQueuedVoice = false;
+    }
+#endif
+
+#ifdef ENABLE_CW
+    static uint16_t fox_hunt_countdown = 0;
+    static uint16_t sos_countdown = 0;
+
+    if (gCWSettings.fox_hunt_enabled) {
+        if (fox_hunt_countdown == 0) {
+            // Time to transmit
+            if (gCWSettings.pip_count > 0) {
+                // TODO: Transmit pips
+            } else {
+                // TODO: Transmit CW ID
+            }
+            fox_hunt_countdown = gCWSettings.pip_interval * 100;
+        } else {
+            fox_hunt_countdown--;
+        }
+    }
+
+    if (gCWSettings.sos_mode_enabled) {
+        if (sos_countdown == 0) {
+            // TODO: Transmit SOS message
+            sos_countdown = gCWSettings.id_interval * 100;
+        } else {
+            sos_countdown--;
+        }
     }
 #endif
 

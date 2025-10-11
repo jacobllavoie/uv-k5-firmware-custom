@@ -1920,8 +1920,8 @@ class UVK5RadioEgzumer(chirp_common.CloneModeRadio):
         top.append(advanced)
         top.append(keya)
         top.append(dtmf)
-        if _mem.BUILD_OPTIONS.ENABLE_DTMF_CALLING:
-            top.append(dtmfc)
+#        if _mem.BUILD_OPTIONS.ENABLE_DTMF_CALLING:
+#            top.append(dtmfc)
         top.append(scanl)
         top.append(unlock)
         if _mem.BUILD_OPTIONS.ENABLE_FMRADIO:

@@ -41,6 +41,10 @@ ENABLE_BYP_RAW_DEMODULATORS     ?= 0
 ENABLE_BLMIN_TMP_OFF            ?= 0
 ENABLE_SCAN_RANGES              ?= 1
 ENABLE_CW                       ?= 1
+// EMERGENCY USE ONLY, USE AT YOUR OWN RISK.
+// 			YOU HAVE BEEN WARNED
+// Use outside of an actual emergency without a dummy load will have extreme consequences.
+ENABLE_SOS                      ?= 0
 
 # ---- CONTRIB MODS ----
 
@@ -424,6 +428,9 @@ ifeq ($(ENABLE_SCAN_RANGES),1)
 endif
 ifeq ($(ENABLE_CW),1)
 	CFLAGS  += -DENABLE_CW
+endif
+ifeq ($(ENABLE_SOS),1)
+	CFLAGS  += -DENABLE_SOS
 endif
 ifeq ($(ENABLE_DTMF_CALLING),1)
 	CFLAGS  += -DENABLE_DTMF_CALLING

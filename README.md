@@ -27,6 +27,7 @@ Special thanks to Jean-Cyrille F6IWW (2 times), Fabrice 14RC123, David F4BPP, Ol
 ## Table of Contents
 
 * [My Features](#main-features)
+* [Main Features from Armel](#main-features-from-F4HWN)
 * [Main Features from Egzumer](#main-features-from-egzumer)
 * [Manual](#manual)
 * [Radio Performance](#radio-performance)
@@ -37,7 +38,7 @@ Special thanks to Jean-Cyrille F6IWW (2 times), Fabrice 14RC123, David F4BPP, Ol
 * [License](#license)
 * [Example changes/updates](#example-changesupdates)
 
-## Main features and improvements from KO6DSS:
+## Main features:
 
 * CW functionality:
     * CW ID (Callsign) 15 Bytes
@@ -45,14 +46,14 @@ Special thanks to Jean-Cyrille F6IWW (2 times), Fabrice 14RC123, David F4BPP, Ol
     * CW ID on End of Transmission
     * T-Hunt (Transmits PIPCnt every PIPInt and CW ID every ID Int) useful for hidden transmitter hunts
     * MSG1&2 (Reserved for future use)
-    * SOS mode ****CODE INTENTIONALLY BROKEN AND DISABLED**** (****EMERGENCY USE ONLY**** transmits SOS and grid square per duty cycle with a default of 20% to prevent xmitter overheat)
+    * Broken ****CODE INTENTIONALLY DISABLED IN BUILD FILE**** (****EMERGENCY USE ONLY**** transmits SOS and grid square per duty cycle with a default of 20% to prevent xmitter overheat)
 * Planned:
     * SOS mode once code thoroughly tested.
     * Add keyer support.
     * Add APRS encode/decode. (MSG1&2)?
     * Dreaming: add support for M5Stack cardputer for a limited set of digital modes via UART or audio.
 
-## Main features and improvements from F4HWN:
+## Main features from F4HWN:
 
 * several firmware versions:
     * Bandscope (with spectrum analyzer made by Fagci),

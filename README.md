@@ -1,7 +1,3 @@
-# Stats
-
-![Alt](https://repobeats.axiom.co/api/embed/947813147857755cef60a960d13734044b3b2c22.svg "Repobeats analytics image")
-
 # Open re-implementation of the Quansheng UV-K5/K6/5R v2.1.27 firmware
 
 This repository is a fork of [Egzumer custom firmware](https://github.com/egzumer/uv-k5-firmware-custom), who was a merge of [OneOfEleven custom firmware](https://github.com/OneOfEleven/uv-k5-firmware-custom) with [fagci spectrum analizer](https://github.com/fagci/uv-k5-firmware-fagci-mod/tree/refactor) plus my few changes.
@@ -9,9 +5,9 @@ This repository is a fork of [Egzumer custom firmware](https://github.com/egzume
 All is a cloned and customized version of DualTachyon's open firmware found [here](https://github.com/DualTachyon/uv-k5-firmware) ... a cool achievement !
 
 > [!NOTE]
-> EN - About Chirp, as many others firmwares, you need to use a dedicated driver available on [this repository](https://github.com/armel/uv-k5-chirp-driver). 
+> EN - About Chirp, as many others firmwares, you need to use a dedicated driver available on [this repository](https://github.com/jacobllavoie/uv-k5-firmware-custom) uvk5_egzumer_ko6dss_ver_X.X.X.py. 
 >
-> _FR - A propos de Chirp, comme beaucoup d'autres firmwares, vous devez utiliser un pilote dédié disponible sur [ce dépôt](https://github.com/armel/uv-k5-chirp-driver)._
+> _FR - A propos de Chirp, comme beaucoup d'autres firmwares, vous devez utiliser un pilote dédié disponible sur [ce dépôt](https://github.com/jacobllavoie/uv-k5-firmware-custom) uvk5_egzumer_ko6dss_ver_X.X.X.py._
 
 > [!WARNING]
 > EN - THIS FIRMWARE HAS NO REAL BRAIN. PLEASE USE YOUR OWN. Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
@@ -40,6 +36,21 @@ Special thanks to Jean-Cyrille F6IWW (2 times), Fabrice 14RC123, David F4BPP, Ol
 * [Other sources of information](#other-sources-of-information)
 * [License](#license)
 * [Example changes/updates](#example-changesupdates)
+
+## Main features and improvements from KO6DSS:
+
+* CW functionality:
+    * CW ID (Callsign) 15 Bytes
+    * Grid (Grid square) 15 Bytes
+    * CW ID on End of Transmission
+    * T-Hunt (Transmits PIPCnt every PIPInt and CW ID every ID Int) useful for hidden transmitter hunts
+    * MSG1&2 (Reserved for future use)
+    * SOS mode ****CODE INTENTIONALLY BROKEN AND DISABLED**** (****EMERGENCY USE ONLY**** transmits SOS and grid square per duty cycle with a default of 20% to prevent xmitter overheat)
+* Planned:
+    * SOS mode once code thoroughly tested.
+    * Add keyer support.
+    * Add APRS encode/decode. (MSG1&2)?
+    * Dreaming: add support for M5Stack cardputer for a limited set of digital modes via UART or audio.
 
 ## Main features and improvements from F4HWN:
 

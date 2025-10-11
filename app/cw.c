@@ -83,6 +83,7 @@ void CW_HandleAutomaticTransmission(void)
 {
 	static uint32_t pip_countdown = 0;
 	static uint32_t id_countdown = 0;
+	static uint32_t sos_countdown = 0;
 	static bool transmitting = false;
 
 	if (transmitting) {
@@ -124,14 +125,22 @@ void CW_HandleAutomaticTransmission(void)
 		id_countdown = 0;
 	}
 
-    // if (gCWSettings.sos_mode_enabled) {
-    //     if (sos_countdown == 0) {
-    //         // TODO: Transmit SOS message
-    //         sos_countdown = gCWSettings.id_interval * 100;
-    //     } else {
-    //         sos_countdown--;
-    //     }
-    // }
+#ifdef ENABLE_SOS
+    if (gCWSettings.sos_mode_enabled) {
+        if (sos_countdown == 0) {
+            transmitting = true;
+            RADIO_PrepareTX();
+            CW_Transmit_String("SOS");
+            APP_EndTransmission();
+            FUNCTION_Select(FUNCTION_FOREGROUND);
+            gFlagEndTransmission = false;
+            transmitting = false;
+            sos_countdown = (uint32_t)gCWSettings.id_interval * 100;
+        } else {
+            sos_countdown--;
+        }
+    }
+#endif
 }
 
 static const char *morse_code[] = {
@@ -181,8 +190,7 @@ void CW_Transmit_String(const char *str)
     for (size_t i = 0; str[i] != '\0'; i++)
     {
         char c = str[i];
-        if (c == ' ')
-        {
+        if (c == ' ') {
             SYSTEM_DelayMs(dot_duration * 4); // Word space (7 units) - inter-letter (3) = 4
             continue;
         }

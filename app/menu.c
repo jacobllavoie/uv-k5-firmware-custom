@@ -430,7 +430,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = gSubMenu_SIDEFUNCTIONS_size-1;
             break;
 
-#ifdef ENABLE_FEAT_F4HWN_SLEEP
+#ifdef ENABLE_FEAT_F4HWN_SLEEP 
         case MENU_SET_OFF:
             *pMax = 120;
             break;
@@ -927,7 +927,7 @@ void MENU_AcceptSetting(void)
         #endif
 
         case MENU_BATCAL:
-        {                                                                // voltages are averages between discharge curves of 1600 and 2200 mAh
+        {
             // gBatteryCalibration[0] = (520ul * gSubMenuSelection) / 760;  // 5.20V empty, blinking above this value, reduced functionality below
             // gBatteryCalibration[1] = (689ul * gSubMenuSelection) / 760;  // 6.89V,  ~5%, 1 bars above this value
             // gBatteryCalibration[2] = (724ul * gSubMenuSelection) / 760;  // 7.24V, ~17%, 2 bars above this value
@@ -1513,6 +1513,7 @@ void MENU_ShowCurrentSetting(void)
                 if(gSubMenu_SIDEFUNCTIONS[i].id==id) {
                     gSubMenuSelection = i;
                     break;
+
                 }
 
             }
@@ -1596,7 +1597,8 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && edit_index >= 0)
-    {   // currently editing the channel name
+    {
+        // currently editing the channel name
 
         if (edit_index < 10)
         {
@@ -1605,7 +1607,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                 edit[edit_index] = '0' + Key - KEY_0;
 
                 if (++edit_index >= 10)
-                {   // exit edit
+                {
                     gFlagAcceptSetting  = false;
                     gAskForConfirmation = 1;
                 }
@@ -1687,7 +1689,8 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         UI_MENU_GetCurrentMenuId() == MENU_DEL_CH ||
         UI_MENU_GetCurrentMenuId() == MENU_1_CALL ||
         UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
-    {   // enter 3-digit channel number
+    {
+        // enter 3-digit channel number
 
         if (gInputBoxIndex < 3)
         {
@@ -1857,36 +1860,32 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME)
     {
         if (edit_index < 0)
-        {   // enter channel name edit mode
+        {
             if (!RADIO_CheckValidChannel(gSubMenuSelection, false, 0))
                 return;
 
             SETTINGS_FetchChannelName(edit, gSubMenuSelection);
 
-            // pad the channel name out with '_'
             edit_index = strlen(edit);
             while (edit_index < 10)
                 edit[edit_index++] = '_';
             edit[edit_index] = 0;
-            edit_index = 0;  // 'edit_index' is going to be used as the cursor position
+            edit_index = 0;
 
-            // make a copy so we can test for change when exiting the menu item
             memcpy(edit_original, edit, sizeof(edit_original));
 
             return;
         }
         else
         if (edit_index >= 0 && edit_index < 10)
-        {   // editing the channel name characters
+        {
 
             if (++edit_index < 10)
                 return; // next char
 
-            // exit
             gFlagAcceptSetting  = false;
             gAskForConfirmation = 0;
             if (memcmp(edit_original, edit, sizeof(edit_original)) == 0) {
-                // no change - drop it
                 gIsInSubMenu = false;
             }
         }
@@ -1956,8 +1955,6 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 	}
 #endif
 
-    // exiting the sub menu
-
     if (gIsInSubMenu)
     {
         if (UI_MENU_GetCurrentMenuId() == MENU_RESET  ||
@@ -1985,7 +1982,7 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
                         MENU_AcceptSetting();
 
-                        #if defined(ENABLE_OVERLAY)
+                        #if defined(ENABLE_OVERLAY) 
                             overlay_FLASH_RebootToBootloader();
                         #else
                             NVIC_SystemReset();
@@ -2024,14 +2021,13 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && edit_index >= 0)
-    {   // currently editing the channel name
-
+    {
         if (edit_index < 10)
         {
             edit[edit_index] = '-';
 
             if (++edit_index >= 10)
-            {   // exit edit
+            {
                 gFlagAcceptSetting  = false;
                 gAskForConfirmation = 1;
             }
@@ -2051,7 +2047,7 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
     #endif
     {
         if ((UI_MENU_GetCurrentMenuId() == MENU_R_CTCS || UI_MENU_GetCurrentMenuId() == MENU_R_DCS) && gIsInSubMenu)
-        {   // scan CTCSS or DCS to find the tone/code of the incoming signal
+        {
             if (!SCANNER_IsScanning())
                 MENU_StartCssScan();
             else
@@ -2072,16 +2068,16 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
     bool    bCheckScanList;
 
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gIsInSubMenu && edit_index >= 0)
-    {   // change the character
+    {
         if (bKeyPressed && edit_index < 10 && Direction != 0)
         {
-            const char   unwanted[] = "$%&!\"':;?^`|{}";
+            const char   unwanted[] = "$%&!\":;?^`|{}";
             char         c          = edit[edit_index] + Direction;
             unsigned int i          = 0;
             while (i < sizeof(unwanted) && c >= 32 && c <= 126)
             {
                 if (c == unwanted[i++])
-                {   // choose next character
+                {
                     c += Direction;
                     i = 0;
                 }
@@ -2095,16 +2091,16 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 
 #ifdef ENABLE_CW
 	if ((UI_MENU_GetCurrentMenuId() == MENU_CW_MSG1 || UI_MENU_GetCurrentMenuId() == MENU_CW_MSG2 || UI_MENU_GetCurrentMenuId() == MENU_CW_ID || UI_MENU_GetCurrentMenuId() == MENU_CW_GRID) && gIsInSubMenu && edit_index >= 0)
-	{   // change the character
+	{
 		if (bKeyPressed && edit_index < 16 && Direction != 0)
 		{
-			const char   unwanted[] = "$%&!\"':;?^`|{}";
+			const char   unwanted[] = "$%&!\":;?^`|{}";
 			char         c          = edit[edit_index] + Direction;
 			unsigned int i          = 0;
 			while (i < sizeof(unwanted) && c >= 32 && c <= 126)
 			{
 				if (c == unwanted[i++])
-				{   // choose next character
+				{
 					c += Direction;
 					i = 0;
 				}
@@ -2238,7 +2234,7 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
             break;
         case KEY_F:
             if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && edit_index >= 0)
-            {   // currently editing the channel name
+            {
                 if (!bKeyHeld && bKeyPressed)
                 {
                     gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
@@ -2246,7 +2242,7 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
                     {
                         edit[edit_index] = ' ';
                         if (++edit_index >= 10)
-                        {   // exit edit
+                        {
                             gFlagAcceptSetting  = false;
                             gAskForConfirmation = 1;
                         }

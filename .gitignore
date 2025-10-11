@@ -9,3 +9,4 @@ compile_commands.json
 .vscode
 /docs
 k5_eeprom.raw
+__pycache__/uvk5_egzumer_ko6dss_ver_0.0.1.cpython-312.pyc

@@ -333,12 +333,6 @@ struct {
 char name[16];
 } channelname[200];
 
-##seekto 0x1c00;
-#struct {
-#char name[8];
-#char number[3];
-#seek 5;
-#} dtmfcontact[16];
 
 struct {
     struct {

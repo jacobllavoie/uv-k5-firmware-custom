@@ -404,8 +404,14 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 			return -1;
 		case MENU_CW_EOT:
 		case MENU_CW_T_HUNT:
-		case MENU_CW_SOS:
 			*pMax = 1;
+			break;
+		case MENU_CW_SOS:
+#ifdef ENABLE_SOS
+			*pMax = 1;
+#else
+			return -1;
+#endif
 			break;
 		case MENU_CW_PIP_CNT:
 			*pMin = 1;
@@ -1076,7 +1082,9 @@ void MENU_AcceptSetting(void)
 			gCWSettings.fox_hunt_enabled = gSubMenuSelection;
 			break;
 		case MENU_CW_SOS:
+#ifdef ENABLE_SOS
 			gCWSettings.sos_mode_enabled = gSubMenuSelection;
+#endif
 			break;
 		case MENU_CW_PIP_CNT:
 			gCWSettings.pip_count = gSubMenuSelection;
@@ -1828,6 +1836,10 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
     if (!gIsInSubMenu)
     {
+#ifndef ENABLE_SOS
+        if (UI_MENU_GetCurrentMenuId() == MENU_CW_SOS)
+            return;
+#endif
         #ifdef ENABLE_VOICE
             if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
                 gAnotherVoiceID = MenuList[gMenuCursor].voice_id;

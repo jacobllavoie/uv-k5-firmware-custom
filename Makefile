@@ -41,9 +41,9 @@ ENABLE_BYP_RAW_DEMODULATORS     ?= 0
 ENABLE_BLMIN_TMP_OFF            ?= 0
 ENABLE_SCAN_RANGES              ?= 1
 ENABLE_CW                       ?= 1
-// EMERGENCY USE ONLY, USE AT YOUR OWN RISK.
-// 			YOU HAVE BEEN WARNED
-// Use outside of an actual emergency without a dummy load will have extreme consequences.
+# EMERGENCY USE ONLY, USE AT YOUR OWN RISK.
+# 			YOU HAVE BEEN WARNED
+# Use outside of an actual emergency without a dummy load will have extreme consequences.
 ENABLE_SOS                      ?= 0
 
 # ---- CONTRIB MODS ----

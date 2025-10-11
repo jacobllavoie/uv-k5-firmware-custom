@@ -69,6 +69,6 @@ void CW_SaveSettings(void);
 
 void CW_HandleAutomaticTransmission(void);
 
-void CW_Transmit_String(const char* str);
+void CW_Transmit_String(const char* str, uint8_t wpm);
 
 #endif // CW_H

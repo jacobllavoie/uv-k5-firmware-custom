@@ -1121,11 +1121,18 @@ void UI_DisplayMenu(void)
             break;
 
         case MENU_CW_SOS:
+#ifdef ENABLE_SOS
             if (!gIsInSubMenu) {
                 strcpy(String, "EMERGENCY\nONLY");
             } else {
+                if (gSubMenuSelection > 1) {
+                    gSubMenuSelection = 1;
+                }
                 strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
             }
+#else
+            strcpy(String, "READ\nMANUAL");
+#endif
             break;
 
         case MENU_CW_PIP_CNT:

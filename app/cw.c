@@ -4,6 +4,8 @@
 #include "../driver/bk4819.h"
 #include "../driver/system.h"
 #include "radio.h"
+#include "app.h"
+#include "misc.h"
 
 // The global instance of the CW settings
 CW_Settings_t gCWSettings;
@@ -79,39 +81,48 @@ static void CW_Transmit_Pips(uint8_t count)
 
 void CW_HandleAutomaticTransmission(void)
 {
-    static uint32_t pip_countdown = 0;
-    static uint32_t id_countdown = 0;
-//    static uint16_t sos_countdown = 0;
-    static bool transmitting = false;
+	static uint32_t pip_countdown = 0;
+	static uint32_t id_countdown = 0;
+	static bool transmitting = false;
 
-    if (transmitting) {
-        return;
-    }
+	if (transmitting) {
+		return;
+	}
 
-    if (gCWSettings.fox_hunt_enabled) {
-        if (id_countdown == 0) {
-            if (strlen(gCWSettings.callsign) > 0) {
-                transmitting = true;
-                CW_Transmit_String(gCWSettings.callsign);
-                transmitting = false;
-            }
-            id_countdown = (uint32_t)gCWSettings.id_interval * 60 * 100;
-            pip_countdown = (uint32_t)gCWSettings.pip_interval * 100;
-        } else {
-            id_countdown--;
-        }
-
-        if (pip_countdown == 0) {
-            if (gCWSettings.pip_count > 0) {
-                transmitting = true;
-                CW_Transmit_Pips(gCWSettings.pip_count);
-                transmitting = false;
-            }
-            pip_countdown = (uint32_t)gCWSettings.pip_interval * 100;
-        } else {
-            pip_countdown--;
-        }
-    }
+	if (gCWSettings.fox_hunt_enabled) {
+		if (pip_countdown == 0) {
+			if (gCWSettings.pip_count > 0) {
+				transmitting = true;
+				RADIO_PrepareTX();
+				CW_Transmit_Pips(gCWSettings.pip_count);
+				APP_EndTransmission();
+				FUNCTION_Select(FUNCTION_FOREGROUND);
+				gFlagEndTransmission = false;
+				transmitting = false;
+			}
+			pip_countdown = (uint32_t)gCWSettings.pip_interval * 100;
+		} else {
+			pip_countdown--;
+		}
+		
+		if (id_countdown == 0) {
+			if (strlen(gCWSettings.callsign) > 0) {
+				transmitting = true;
+				RADIO_PrepareTX();
+				CW_Transmit_String(gCWSettings.callsign);
+				APP_EndTransmission();
+				FUNCTION_Select(FUNCTION_FOREGROUND);
+				gFlagEndTransmission = false;
+				transmitting = false;
+			}
+			id_countdown = (uint32_t)gCWSettings.id_interval * 60 * 100;
+		} else {
+			id_countdown--;
+		}
+	} else {
+		pip_countdown = 0;
+		id_countdown = 0;
+	}
 
     // if (gCWSettings.sos_mode_enabled) {
     //     if (sos_countdown == 0) {

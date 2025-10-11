@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "app.h"
 
 // Using the EEPROM space from the disabled DTMF contacts
 #define CW_SETTINGS_EEPROM_ADDR 0x1C00

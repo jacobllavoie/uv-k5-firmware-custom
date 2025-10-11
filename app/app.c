@@ -901,34 +901,6 @@ void APP_Update(void)
     }
 #endif
 
-#ifdef ENABLE_CW
-    static uint16_t fox_hunt_countdown = 0;
-    static uint16_t sos_countdown = 0;
-
-    if (gCWSettings.fox_hunt_enabled) {
-        if (fox_hunt_countdown == 0) {
-            // Time to transmit
-            if (gCWSettings.pip_count > 0) {
-                // TODO: Transmit pips
-            } else {
-                // TODO: Transmit CW ID
-            }
-            fox_hunt_countdown = gCWSettings.pip_interval * 100;
-        } else {
-            fox_hunt_countdown--;
-        }
-    }
-
-    if (gCWSettings.sos_mode_enabled) {
-        if (sos_countdown == 0) {
-            // TODO: Transmit SOS message
-            sos_countdown = gCWSettings.id_interval * 100;
-        } else {
-            sos_countdown--;
-        }
-    }
-#endif
-
 #ifdef ENABLE_FEAT_F4HWN
     if (gCurrentFunction == FUNCTION_TRANSMIT && (gTxTimeoutReachedAlert || SerialConfigInProgress()))
     {
@@ -1392,6 +1364,10 @@ void APP_TimeSlice10ms(void)
     if (gRxVfo->Modulation == MODULATION_AM) {
         AM_fix_10ms(gEeprom.RX_VFO);
     }
+#endif
+
+#ifdef ENABLE_CW
+    CW_HandleAutomaticTransmission();
 #endif
 
 #ifdef ENABLE_UART
